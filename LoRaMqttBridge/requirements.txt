@@ -1,0 +1,4 @@
+paho-mqtt>=2.0.0
+pyserial>=3.5
+spidev>=3.7
+rpi-lgpio>=0.6

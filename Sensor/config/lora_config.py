@@ -1,0 +1,204 @@
+"""
+SX1276/77/78/79 LoRa Configuration Parameters
+Based on Semtech SX1276/77/78/79 Datasheet Rev 7
+
+This file contains the configuration parameters for the SX1276/77/78/79 LoRa modem.
+"""
+from machine import Pin, SPI
+
+from config import hardware_config
+from lora import SX1262
+
+# Frequency settings (in kHz)
+# Valid ranges per band:
+# Band 1 (HF): 862-1020 MHz (779-960 MHz for SX1279)
+# Band 2 (LF): 410-525 MHz (410-480 MHz for SX1279)
+# Band 3 (LF): 137-175 MHz (137-160 MHz for SX1279)
+FREQ_KHZ = 434000  # 868 MHz
+
+# Image calibration settings
+# Controls the automatic image calibration mechanism
+# False = Calibration of the receiver depending on temperature is disabled
+# True = Calibration of the receiver depending on temperature enabled
+AUTO_IMAGE_CAL = True
+
+# Transmit antenna selection
+# Options:
+# "RFO" = Use RFO pin for output powers up to +14 dBm
+# "PA_BOOST" = Use PA_BOOST pin for output powers up to +20 dBm
+TX_ANT = "PA_BOOST"
+
+# Output power in dBm
+# Range depends on TX_ANT:
+# If TX_ANT = "RFO": -4 to +15 dBm
+# If TX_ANT = "PA_BOOST": +2 to +17 dBm (up to +20 dBm with special settings)
+OUTPUT_POWER = 22
+
+# PA ramp time in microseconds
+# Controls the rise/fall time of ramp up/down in FSK
+# Options: 3400, 2000, 1000, 500, 250, 125, 100, 62, 50, 40, 31, 25, 20, 15, 12, 10 μs
+PA_RAMP_US = 40
+
+# Signal bandwidth in kHz
+# Available bandwidths: 7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500 kHz
+# Note: In the lower band (169 MHz), 250 kHz and 500 kHz are not supported
+BW = 125
+
+# Error coding rate (forward error correction)
+# Options:
+# 5 = 4/5 (1 error checking bit for every 4 data bits)
+# 6 = 4/6 (2 error checking bits for every 4 data bits)
+# 7 = 4/7 (3 error checking bits for every 4 data bits)
+# 8 = 4/8 (4 error checking bits for every 4 data bits)
+CODING_RATE = 8
+
+# Header mode
+# False = Explicit header mode (header with payload length, coding rate, and CRC presence)
+# True = Implicit header mode (fixed payload length, no header, SF6 requires implicit mode)
+IMPLICIT_HEADER = False
+
+# Spreading factor
+# Options: 6, 7, 8, 9, 10, 11, 12
+# Higher SF = longer range, lower data rate, higher sensitivity
+# Note: SF6 requires implicit header mode
+SF = 11
+
+# CRC generation on payload
+# True = Enable CRC generation and check on payload
+# False = Disable CRC generation and check on payload
+CRC_EN = True
+
+# Invert I and Q signals in RX path
+# False = Normal mode
+# True = I and Q signals are inverted
+INVERT_IQ_RX = False
+
+# Invert I and Q signals in TX path
+# False = Normal mode
+# True = I and Q signals are inverted
+INVERT_IQ_TX = False
+
+# Preamble length in symbols
+# Default is 8, which gives a total of 8 + 4.25 = 12.25 symbols of preamble
+# Longer preambles improve receiver sensitivity but increase airtime
+PREAMBLE_LEN = 10
+
+# LNA gain setting (receiver gain)
+# None = Auto gain (AGC controls gain)
+# 1 = Highest gain (G1)
+# 2 = G2 (-6dB from max)
+# 3 = G3 (-12dB from max)
+# 4 = G4 (-24dB from max)
+# 5 = G5 (-36dB from max)
+# 6 = G6 (-48dB from max)
+LNA_GAIN = None
+
+# Enable RX boost for HF signals (improves sensitivity)
+# True = Boost on, 150% LNA current
+# False = Default LNA current
+RX_BOOST = True
+
+# LNA Boost for High Frequency (RFI_HF) LNA current adjustment
+# Used for band 1 (high frequency operation)
+# Options:
+# 0 = Default LNA current
+# 3 = Boost on, 150% LNA current
+# Higher values improve sensitivity at the cost of increased current consumption
+LNA_BOOST_HF = 0
+
+# Sync word for LoRa network identification
+# Default is 0x12
+# Value 0x34 is reserved for LoRaWAN networks
+SYNCWORD = 0x12
+
+def configure_modem() -> SX1262:
+    # Konfiguration für den LoRa-Treiber (Spreading Factor, Bandbreite, etc.)
+    # Diese Parameter bestimmen das Verhalten auf der Bitübertragungsschicht (Physical Layer).
+    lora_cfg = {
+        "freq_khz": FREQ_KHZ,
+        "tx_ant": TX_ANT,
+        "output_power": OUTPUT_POWER,
+        "pa_ramp_us": PA_RAMP_US,
+        "bw": BW,
+        "coding_rate": CODING_RATE,
+        "implicit_header": IMPLICIT_HEADER,
+        "sf": SF,
+        "crc_en": CRC_EN,
+        "invert_iq_rx": INVERT_IQ_RX,
+        "invert_iq_tx": INVERT_IQ_TX,
+        "preamble_len": PREAMBLE_LEN,
+        "rx_boost": RX_BOOST,
+        "syncword": SYNCWORD,
+    }
+
+    # Initialisierung der SPI- und GPIO-Schnittstellen für den SX1262
+    LoRa_NSS = Pin(hardware_config.LoRa_NSS)
+    LoRa_SCK = Pin(hardware_config.LoRa_SCK)
+    LoRa_MOSI = Pin(hardware_config.LoRa_MOSI)
+    LoRa_MISO = Pin(hardware_config.LoRa_MISO)
+    LoRa_RST = Pin(hardware_config.LoRa_RST)
+    LoRa_BUSY = Pin(hardware_config.LoRa_BUSY)
+    DIO1 = Pin(hardware_config.DIO1)
+
+    spi = SPI(
+        hardware_config.LoRa_SPI_Channel_ID,
+        baudrate=hardware_config.LoRa_Baudrate,
+        polarity=hardware_config.LoRa_Polarity,
+        phase=hardware_config.LoRa_Phase,
+        sck=LoRa_SCK,
+        mosi=LoRa_MOSI,
+        miso=LoRa_MISO
+    )
+    
+    return SX1262(
+        spi=spi,
+        cs=LoRa_NSS,
+        busy=LoRa_BUSY,
+        dio1=DIO1,
+        reset=LoRa_RST,
+        dio3_tcxo_millivolts=3300,
+        lora_cfg=lora_cfg
+    )
+
+
+import math
+
+
+def calculate_lora_airtime_ms(pl: int = 50):
+    """
+    Berechnet die minimale Empfangswartezeit (Airtime) in Millisekunden.
+
+    Parameter:
+    - sf: Spreading Factor (6 bis 12)
+    - bw_khz: Bandbreite in kHz (z. B. 125)
+    - cr: Coding Rate (1=4/5 bis 4=4/8)
+    - pl: Payload-Länge in Byte
+    - crc_en: True/False für CRC aktiv
+    - implicit_header: True/False für Header-Modus
+    - preamble_len: Länge des Preambels (z. B. 8)
+
+    Rückgabewert:
+    - Airtime in Millisekunden (float)
+    """
+
+    bw = BW * 1000  # in Hz
+    t_sym = (2 ** SF) / bw  # Sekunden pro Symbol
+    de = 1 if t_sym > 0.016 else 0  # Low Data Rate Optimization
+    ih = 1 if IMPLICIT_HEADER else 0
+    crc = 1 if CRC_EN else 0
+
+    # Anzahl Payload-Symbole
+    payload_symb_nb = 8 + max(
+        math.ceil(
+            (8 * pl - 4 * SF + 28 + 16 * crc - 20 * ih) /
+            (4 * (SF - 2 * de))
+        ) * (CODING_RATE + 4),
+        0
+    )
+
+    # Gesamtzeit berechnen
+    t_preamble = (PREAMBLE_LEN + 4.25) * t_sym
+    t_payload = payload_symb_nb * t_sym
+    t_total_s = t_preamble + t_payload
+
+    return int(round(t_total_s * 1000)/3)  # in Millisekunden
