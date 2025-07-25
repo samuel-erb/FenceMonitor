@@ -1,4 +1,3 @@
-import random
 from collections import deque
 from LoRaNetworking.LoRaTCPSegment import LoRaTCPSegment, Seq
 from LoRaNetworking.TCB import TCB
@@ -79,10 +78,10 @@ class LoRaTCP:
     statische liste mit allen instanzen -> auf sensor wird über diese liste iteriert und run ausgeführt
     """
 
-    MAX_RETRANSMISSION_ATTEMPTS = 50
+    MAX_RETRANSMISSION_ATTEMPTS = 15
 
     INSTANCES = list()
-    __slots__ = ('data_link', 'tcb', '_incoming_dataframes', 'last_run', '_timeout', '_blocking', 'last_retransmission_sequence_number', 'retransmission_attempts', 'sensor_active')
+    __slots__ = ('data_link', 'tcb', '_incoming_dataframes', 'last_run', '_timeout', '_blocking', 'last_retransmission_sequence_number', 'retransmission_attempts')
 
     def __init__(self):
         _log("Initializing new LoRaTCP instance", LOGLEVEL_INFO)
@@ -95,7 +94,6 @@ class LoRaTCP:
         self._blocking = False
         self.last_retransmission_sequence_number = None
         self.retransmission_attempts = 0
-        self.sensor_active = True
         LoRaTCP.INSTANCES.append(self)
         _log(f"LoRaTCP instance created. Total instances: {len(LoRaTCP.INSTANCES)}", LOGLEVEL_INFO)
         _log(f"Initial state: socket_id={self.tcb.socket_id}, state={TCB_STATES[self.tcb.state]}, blocking={self._blocking}",
@@ -230,12 +228,6 @@ class LoRaTCP:
             _log(f"Cannot send: connection closing (state: {self.tcb.state})", LOGLEVEL_ERROR)
             raise OSError("connection closing")
 
-    def mark_inactive(self):
-        self.sensor_active = False
-
-    def mark_active(self):
-        self.sensor_active = True
-
     def read(self, bufsize=242):
         """
         Standard TCP Socket read/recv Verhalten implementieren:
@@ -360,8 +352,6 @@ class LoRaTCP:
         # send the segment at the front of the retransmission queue again,
         # reinitialize the retransmission timer,
         # and return.
-        if not self.sensor_active:
-            return
         if self.tcb.retransmission_timeout_timer is None:
             return
 
@@ -721,9 +711,6 @@ class LoRaTCP:
                         self.send_segment(new_seg)
                         # After sending the acknowledgment, drop the unacceptable segment and return.
                         return
-                    elif not acceptable and seg.rst_flag:
-                        return
-
                     return
             # second check the RST bit,
             if state == TCB.STATE_SYN_RCVD:
@@ -735,6 +722,7 @@ class LoRaTCP:
                         _log("Passive connection reset, returning to LISTEN state", LOGLEVEL_INFO)
                         self.tcb.state = TCB.STATE_LISTEN
                         self.tcb.retransmission_queue = deque(maxlen=20)
+                        gc.collect()
                         return
                         # The user need not be informed.
                     else:

@@ -142,3 +142,46 @@ def configure_modem() -> SX1262:
             spi=spi, cs=LoRa_NSS, busy=LoRa_BUSY, dio1=DIO1, reset=LoRa_RST,
             lora_cfg=lora_cfg
         )
+
+
+import math
+
+
+def calculate_lora_airtime_ms(pl: int = 50):
+    """
+    Berechnet die minimale Empfangswartezeit (Airtime) in Millisekunden.
+
+    Parameter:
+    - sf: Spreading Factor (6 bis 12)
+    - bw_khz: Bandbreite in kHz (z. B. 125)
+    - cr: Coding Rate (1=4/5 bis 4=4/8)
+    - pl: Payload-Länge in Byte
+    - crc_en: True/False für CRC aktiv
+    - implicit_header: True/False für Header-Modus
+    - preamble_len: Länge des Preambels (z. B. 8)
+
+    Rückgabewert:
+    - Airtime in Millisekunden (float)
+    """
+
+    bw = BW * 1000  # in Hz
+    t_sym = (2 ** SF) / bw  # Sekunden pro Symbol
+    de = 1 if t_sym > 0.016 else 0  # Low Data Rate Optimization
+    ih = 1 if IMPLICIT_HEADER else 0
+    crc = 1 if CRC_EN else 0
+
+    # Anzahl Payload-Symbole
+    payload_symb_nb = 8 + max(
+        math.ceil(
+            (8 * pl - 4 * SF + 28 + 16 * crc - 20 * ih) /
+            (4 * (SF - 2 * de))
+        ) * (CODING_RATE + 4),
+        0
+    )
+
+    # Gesamtzeit berechnen
+    t_preamble = (PREAMBLE_LEN + 4.25) * t_sym
+    t_payload = payload_symb_nb * t_sym
+    t_total_s = t_preamble + t_payload
+
+    return int(round(t_total_s * 1000)/3)  # in Millisekunden

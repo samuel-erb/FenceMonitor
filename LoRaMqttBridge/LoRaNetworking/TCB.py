@@ -75,7 +75,7 @@ class TCB:
         self.state = TCB.STATE_CLOSED
 
         # Sende-Puffer für Daten die noch auf ein ACK warten
-        self.retransmission_queue = deque((), 20)  # type: Deque[LoRaTCPSegment]
+        self.retransmission_queue = deque(maxlen=20)  # type: Deque[LoRaTCPSegment]
         # Empfangs-Puffer für Daten die noch nicht an die Anwendung übergeben wurden
         self.receive_buffer = {}  # type: Dict[Seq, bytes]
         # Ein zusammenhängender Stream an Daten die für die Anwendung bestimmt sind und aus dem receive_buffer kommen
@@ -127,7 +127,6 @@ class TCB:
             seg for seg in self.retransmission_queue
             if seg not in segments_to_remove
         ], 20)
-
         if len(segments_to_remove) > 0:
             del segments_to_remove
             _log(f"Removed acknowledged segments up to {self.snd_una} for socket {self.socket_id}")
@@ -188,7 +187,7 @@ class TCB:
         self.snd_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Sende-Fensters
         self.rcv_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Empfangs-Fensters
         self.state = TCB.STATE_CLOSED
-        self.retransmission_queue = deque((), 20)  # type: Deque[LoRaTCPSegment]
+        self.retransmission_queue = deque(maxlen=20)  # type: Deque[LoRaTCPSegment]
         self.receive_buffer = {}  # type: Dict[Seq, bytes]
         self.reassembled_data = bytes()  # type: bytes
         self.send_buffer = bytes()

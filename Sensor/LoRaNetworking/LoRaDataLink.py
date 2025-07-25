@@ -17,7 +17,7 @@ LOGLEVEL_INFO = const(1)
 LOGLEVEL_WARNING = const(2)
 LOGLEVEL_ERROR = const(3)
 
-DATALINK_LOG_LEVEL = const(LOGLEVEL_WARNING)
+DATALINK_LOG_LEVEL = const(LOGLEVEL_DEBUG)
 
 
 def _log(message: str, loglevel=LOGLEVEL_DEBUG):
@@ -63,7 +63,7 @@ class SensorState:
         if self.last_communication is None:
             return False
         else:
-            return time.ticks_diff(time.ticks_ms(), self.last_communication) > SENSOR_ACTIVE_TIMEOUT
+            return time.ticks_diff(time.ticks_ms(), self.last_communication) <= SENSOR_ACTIVE_TIMEOUT
 
     @staticmethod
     def get_state_by_address(sensor_address: bytes) -> "SensorState":
@@ -74,7 +74,7 @@ class SensorState:
         return state
 
     @staticmethod
-    def get_by_socket_id(socket_id: int) -> "SensorState":
+    def get_by_socket_id(socket_id: bytes) -> "SensorState":
         state = None
         for instance in SensorState.INSTANCES:
             if socket_id in instance.socket_ids:
@@ -212,7 +212,7 @@ class LoRaDataLink(Singleton):
 
     __slots__ = ('mode', 'sensor_address', '_driver', '_receive_queue', 'transmit_queue', '_duty_cycle_timer',
                  '_transmit_time', 'sockets', 'listening_sockets',
-                 'socket_id_to_sensor_address', '_transmission_block')
+                 'socket_id_to_sensor_address', '_transmission_block', 'duty_cycle_message_displayed')
 
     def _init_once(self, **kwargs):
         self.mode = LORA_DATALINK_MODE
@@ -227,6 +227,7 @@ class LoRaDataLink(Singleton):
         self._receiveQueue = Queue(maxsize=10)
         self._transmitQueue = Queue(maxsize=10)
         self._duty_cycle_timer = time.ticks_ms()
+        self.duty_cycle_message_displayed = False
         self._transmit_time = 0
         self.sockets = list()  # type: List[LoRaTCP]
         self.listening_sockets = list()  # type: List[LoRaTCP]
@@ -244,7 +245,8 @@ class LoRaDataLink(Singleton):
         if socket in self.listening_sockets:
             self.listening_sockets.remove(socket)
         if SensorState.get_by_socket_id(socket.tcb.socket_id) is None:
-            SensorState(socket.tcb.socket_id)
+            state = SensorState(socket.tcb.socket_id)
+            state.last_communication = time.ticks_ms()
         self.sockets.append(socket)
 
     def run(self):
@@ -255,7 +257,7 @@ class LoRaDataLink(Singleton):
             self._driver.standby()
             while not self._driver.is_idle():
                 time.sleep_ms(50)
-            rx_packet = self._driver.recv(timeout_ms=self._min_receive_timeout)
+            rx_packet = self._driver.recv(timeout_ms=400)
         except Exception as e:
             _log(f"Error: {e}")
             if "BUSY timeout" in str(e):
@@ -337,7 +339,7 @@ class LoRaDataLink(Singleton):
                 _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {sleeping_time} ms...',
                      LOGLEVEL_INFO)
                 time.sleep_ms(sleeping_time)
-        elif time.ticks_diff(self._duty_cycle_timer, time.ticks_ms()) > 60 * 1000:
+        elif time.ticks_diff(time.ticks_ms(), self._duty_cycle_timer) > 60 * 1000:
             self._duty_cycle_timer = time.ticks_ms()
             self._transmit_time = 0
             self.duty_cycle_message_displayed = False
@@ -345,6 +347,8 @@ class LoRaDataLink(Singleton):
             _log("Reset duty cycle timer", LOGLEVEL_INFO)
         if len(self._transmitQueue) > 0:
             lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
+            if lora_dataframe is None:
+                return
             # Warte bis Kanal frei
             cad_message_displayed = False
             while self._is_channel_active():

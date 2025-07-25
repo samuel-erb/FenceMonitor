@@ -13,6 +13,9 @@ class Queue:
         self.async_lock = asyncio.Lock()  # Für komplexe async Ops
         self.maxsize = maxsize
 
+    def put_sync_left(self, item):
+        self.queue.appendleft(item)
+
     def put_sync(self, item):
         """Schneller sync Zugriff"""
         with self.thread_lock:

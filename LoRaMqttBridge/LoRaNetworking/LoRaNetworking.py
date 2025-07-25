@@ -23,11 +23,3 @@ class LoRaNetworking(Singleton):
     def stop(self):
         self.running = False
 
-    def set_tcp_active(self, socket_id, active):
-        for tcp in LoRaTCP.INSTANCES:  # type: LoRaTCP
-            if tcp.tcb.socket_id == socket_id:
-                if active:
-                    tcp.mark_active()
-                else:
-                    tcp.mark_inactive()
-

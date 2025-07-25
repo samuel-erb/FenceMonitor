@@ -1,3 +1,4 @@
+import gc
 from micropython import const
 import machine
 import micropython_time as time
@@ -45,7 +46,7 @@ DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für 
 DataFrameMaxPayloadLength = const(248)  # 255 - DataFrameHeaderLength -> 248 Maximale Länge des Payloads im LoRa-Frame
 
 # Timeout of communication in milliseconds after which a sensor is regarded as inactive
-SENSOR_ACTIVE_TIMEOUT = 40_000
+SENSOR_ACTIVE_TIMEOUT = 10_000
 
 
 class SensorState:
@@ -55,18 +56,14 @@ class SensorState:
     def __init__(self, sensor_address: bytes):
         self.sensor_address = sensor_address  # type: bytes
         self.socket_ids = list()  # type: List[int]
-        self.last_communication = time.ticks_ms()  # type: int
+        self.last_communication = None  # type: int
         SensorState.INSTANCES.append(self)
 
     def is_active(self) -> bool:
-        from LoRaNetworking.LoRaNetworking import LoRaNetworking
         if self.last_communication is None:
             return False
         else:
-            active = time.ticks_diff(time.ticks_ms(), self.last_communication) <= SENSOR_ACTIVE_TIMEOUT
-            for sock_id in self.socket_ids:
-                LoRaNetworking().set_tcp_active(sock_id, active)
-            return active
+            return time.ticks_diff(time.ticks_ms(), self.last_communication) <= SENSOR_ACTIVE_TIMEOUT
 
     @staticmethod
     def get_state_by_address(sensor_address: bytes) -> "SensorState":
@@ -77,7 +74,7 @@ class SensorState:
         return state
 
     @staticmethod
-    def get_by_socket_id(socket_id: int) -> "SensorState":
+    def get_by_socket_id(socket_id: bytes) -> "SensorState":
         state = None
         for instance in SensorState.INSTANCES:
             if socket_id in instance.socket_ids:
@@ -215,7 +212,7 @@ class LoRaDataLink(Singleton):
 
     __slots__ = ('mode', 'sensor_address', '_driver', '_receive_queue', 'transmit_queue', '_duty_cycle_timer',
                  '_transmit_time', 'sockets', 'listening_sockets',
-                 'socket_id_to_sensor_address', '_transmission_block')
+                 'socket_id_to_sensor_address', '_transmission_block', 'duty_cycle_message_displayed')
 
     def _init_once(self, **kwargs):
         self.mode = LORA_DATALINK_MODE
@@ -230,6 +227,7 @@ class LoRaDataLink(Singleton):
         self._receiveQueue = Queue(maxsize=10)
         self._transmitQueue = Queue(maxsize=10)
         self._duty_cycle_timer = time.ticks_ms()
+        self.duty_cycle_message_displayed = False
         self._transmit_time = 0
         self.sockets = list()  # type: List[LoRaTCP]
         self.listening_sockets = list()  # type: List[LoRaTCP]
@@ -247,7 +245,8 @@ class LoRaDataLink(Singleton):
         if socket in self.listening_sockets:
             self.listening_sockets.remove(socket)
         if SensorState.get_by_socket_id(socket.tcb.socket_id) is None:
-            SensorState(socket.tcb.socket_id)
+            state = SensorState(socket.tcb.socket_id)
+            state.last_communication = time.ticks_ms()
         self.sockets.append(socket)
 
     def run(self):
@@ -258,7 +257,7 @@ class LoRaDataLink(Singleton):
             self._driver.standby()
             while not self._driver.is_idle():
                 time.sleep_ms(50)
-            rx_packet = self._driver.recv(timeout_ms=self._min_receive_timeout)
+            rx_packet = self._driver.recv(timeout_ms=400)
         except Exception as e:
             _log(f"Error: {e}")
             if "BUSY timeout" in str(e):
@@ -340,7 +339,7 @@ class LoRaDataLink(Singleton):
                 _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {sleeping_time} ms...',
                      LOGLEVEL_INFO)
                 time.sleep_ms(sleeping_time)
-        elif time.ticks_diff(self._duty_cycle_timer, time.ticks_ms()) > 60 * 1000:
+        elif time.ticks_diff(time.ticks_ms(), self._duty_cycle_timer) > 60 * 1000:
             self._duty_cycle_timer = time.ticks_ms()
             self._transmit_time = 0
             self.duty_cycle_message_displayed = False
@@ -417,9 +416,6 @@ class LoRaDataLink(Singleton):
         for frame in frames_to_check:
             sensor_address = frame.address
             state = SensorState.get_state_by_address(sensor_address)
-
-            if state is None:
-                SensorState(sensor_address)
 
             if state is not None and state.is_active():
                 # Aktiver Sensor gefunden - dieses Frame senden

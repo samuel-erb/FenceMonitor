@@ -50,7 +50,7 @@ BW = 125
 # 6 = 4/6 (2 error checking bits for every 4 data bits)
 # 7 = 4/7 (3 error checking bits for every 4 data bits)
 # 8 = 4/8 (4 error checking bits for every 4 data bits)
-CODING_RATE = 8
+CODING_RATE = 5
 
 # Header mode
 # False = Explicit header mode (header with payload length, coding rate, and CRC presence)
@@ -61,7 +61,7 @@ IMPLICIT_HEADER = False
 # Options: 6, 7, 8, 9, 10, 11, 12
 # Higher SF = longer range, lower data rate, higher sensitivity
 # Note: SF6 requires implicit header mode
-SF = 11
+SF = 7
 
 # CRC generation on payload
 # True = Enable CRC generation and check on payload
