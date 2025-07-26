@@ -119,7 +119,8 @@ class LoRaTCP:
             self.tcb.state = TCB.STATE_SYN_SENT
             _log(f"State changed to SYN_SENT. Connection initiation complete", LOGLEVEL_INFO)
         else:
-            _log(f"Cannot connect: socket not in CLOSED state (current state: {self.tcb.state})", LOGLEVEL_ERROR)
+            _log(f"Cannot connect: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})", LOGLEVEL_ERROR)
+            raise OSError("Socket not in CLOSED state for connect()")
 
     def settimeout(self, timeout):
         _log(f"Setting timeout: {timeout}", LOGLEVEL_DEBUG)
@@ -196,8 +197,8 @@ class LoRaTCP:
             while self.tcb.state == TCB.STATE_LISTEN:
                 time.sleep_ms(500)
         else:
-            _log("connection already exists", LOGLEVEL_ERROR)
-            _log(f"Current state: {self.tcb.state}, cannot start listening", LOGLEVEL_DEBUG)
+            _log(f"Cannot listen: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})", LOGLEVEL_ERROR)
+            raise OSError("Socket not in CLOSED state for listen()")
 
     def send(self, data: bytes):
         _log(f"Send called with data length: {len(data)}, current state: {self.tcb.state}, data: {data.hex()}", LOGLEVEL_INFO)
@@ -240,6 +241,12 @@ class LoRaTCP:
         if self.tcb.state == TCB.STATE_CLOSED:
             _log("Cannot read: Socket is closed", LOGLEVEL_ERROR)
             raise OSError("Socket is closed")
+            
+        if self.tcb.state in [TCB.STATE_LISTEN, TCB.STATE_SYN_SENT]:
+            _log(f"Cannot read: No data available in state {TCB_STATES[self.tcb.state]}", LOGLEVEL_DEBUG)
+            if not self._blocking:
+                return None
+            # For blocking sockets, wait for connection establishment
 
         #_log(f"Available data before read: {len(self.tcb.reassembled_data)} bytes", LOGLEVEL_DEBUG)
 
@@ -285,7 +292,8 @@ class LoRaTCP:
         _log(f"Close called, current state: {TCB_STATES[self.tcb.state]}", LOGLEVEL_INFO)
         if self.tcb.state == TCB.STATE_CLOSED:
             # If the user does not have access to such a connection, return "error: connection illegal for this process".
-            _log("connection does not exist", LOGLEVEL_ERROR)
+            _log("Cannot close: connection does not exist", LOGLEVEL_WARNING)
+            return  # Silently ignore close on already closed socket
         elif self.tcb.state == TCB.STATE_LISTEN:
             # Any outstanding RECEIVEs are returned with "error: closing" responses. Delete TCB, enter CLOSED state, and return.
             _log("Closing from LISTEN state", LOGLEVEL_DEBUG)
@@ -410,12 +418,31 @@ class LoRaTCP:
             lora_dataframe: LoRaDataFrame = self._incoming_dataframes.pop(0)
             _log(f"Processing dataframe {processed_frames + 1}: payload_length={len(lora_dataframe.payload)}",
                  LOGLEVEL_DEBUG)
-            seg = LoRaTCPSegment.from_bytes(lora_dataframe.payload)  # type: LoRaTCPSegment
-            _log(
-                f"Parsed TCP segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}",
-                LOGLEVEL_DEBUG)
-            self.handle_event_segment_arrives(seg)
-            processed_frames += 1
+            
+            try:
+                # Parse TCP segment with error handling for malformed data
+                seg = LoRaTCPSegment.from_bytes(lora_dataframe.payload)  # type: LoRaTCPSegment
+                _log(
+                    f"Parsed TCP segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}",
+                    LOGLEVEL_DEBUG)
+                
+                # Validate segment basic constraints
+                if not self._validate_segment(seg):
+                    _log(f"Segment validation failed, dropping segment", LOGLEVEL_WARNING)
+                    processed_frames += 1
+                    continue
+                    
+                self.handle_event_segment_arrives(seg)
+                processed_frames += 1
+                
+            except (ValueError, IndexError) as e:
+                _log(f"Error parsing segment from dataframe: {e}, dropping segment", LOGLEVEL_ERROR)
+                processed_frames += 1
+                continue
+            except Exception as e:
+                _log(f"Unexpected error processing segment: {e}", LOGLEVEL_ERROR)
+                processed_frames += 1
+                continue
 
         if processed_frames > 0:
             _log(f"Processed {processed_frames} incoming dataframes", LOGLEVEL_INFO)
@@ -667,6 +694,8 @@ class LoRaTCP:
 
         else:  # Otherwise,
             _log(f"Processing segment in state {TCB_STATES[state]}", LOGLEVEL_DEBUG)
+            # Track if FIN was acknowledged in this segment for proper state transitions
+            fin_was_acked = False
             # first check sequence number
             if state in [TCB.STATE_SYN_RCVD, TCB.STATE_ESTAB,
                          TCB.STATE_FIN_WAIT_1, TCB.STATE_FIN_WAIT_2,
@@ -821,6 +850,7 @@ class LoRaTCP:
                 #   of the last segment used to update SND.WND. The check here prevents using old segments to update the window.
             elif tcb.state in [TCB.STATE_FIN_WAIT_1, TCB.STATE_FIN_WAIT_2]:
                 _log(f"Processing ACK in {TCB_STATES[self.tcb.state]} state", LOGLEVEL_DEBUG)
+                
                 # In addition to the processing for the ESTABLISHED state,
                 # ######## ESTAB Processing #########
                 # If SND.UNA < SEG.ACK =< SND.NXT then, set SND.UNA <- SEG.ACK.
@@ -832,6 +862,13 @@ class LoRaTCP:
                     tcb.snd_una = seg.ack
                     _log(f"Updated snd_una: {old_snd_una} -> {tcb.snd_una}", LOGLEVEL_DEBUG)
                     tcb.remove_acknowledged_segments_from_retransmission_queue()
+                    
+                    # Check if this ACK acknowledges our FIN (only for FIN_WAIT_1)
+                    if tcb.state == TCB.STATE_FIN_WAIT_1 and self.is_fin_acknowledged():
+                        fin_was_acked = True
+                        _log("FIN acknowledged, transitioning to FIN_WAIT_2", LOGLEVEL_INFO)
+                        tcb.state = TCB.STATE_FIN_WAIT_2
+                        
                 # If the ACK is a duplicate (SEG.ACK < SND.UNA), it can be ignored.
                 # if seg.ack < tcb.snd_una:
 
@@ -841,11 +878,6 @@ class LoRaTCP:
                     _log(f"ACK for unsent data in FIN_WAIT: {seg.ack} > {tcb.snd_nxt}", LOGLEVEL_WARNING)
                     return
                 # ######## ESTAB Processing End #########
-                # if our FIN is now acknowledged then enter FIN-WAIT-2 and continue processing in that state.
-                if tcb.state == TCB.STATE_FIN_WAIT_1:
-                    if self.is_fin_acknowledged():
-                        _log("FIN acknowledged, transitioning to FIN_WAIT_2", LOGLEVEL_INFO)
-                        tcb.state = TCB.STATE_FIN_WAIT_2
                 if tcb.state == TCB.STATE_FIN_WAIT_2:
                     # In addition to the processing for the ESTABLISHED state,
                     # ######## ESTAB Processing #########
@@ -991,7 +1023,8 @@ class LoRaTCP:
                 elif tcb.state == TCB.STATE_FIN_WAIT_1:
                     # If our FIN has been ACKed (perhaps in this segment), then enter TIME-WAIT,
                     # start the time-wait timer, turn off the other timers;
-                    if self.is_fin_acknowledged():
+                    # Check if FIN was acknowledged in the current segment processing or previously
+                    if fin_was_acked or self.is_fin_acknowledged():
                         _log("FIN received and our FIN ACKed in FIN_WAIT_1, transitioning to TIME_WAIT", LOGLEVEL_INFO)
                         tcb.state = TCB.STATE_TIME_WAIT
                         tcb.cancel_all_timers()
@@ -1075,9 +1108,13 @@ class LoRaTCP:
         return result
 
     def check_if_segment_is_in_receive_window(self, seg: LoRaTCPSegment) -> bool:
-        seg_seq = seg.seq
+        """
+        Check if segment sequence number is acceptable according to RFC 793.
+        Uses proper sequence number arithmetic with wraparound handling.
+        """
+        seg_seq = Seq(seg.seq)
         seg_len = len(seg.payload)
-        rcv_nxt = self.tcb.rcv_nxt
+        rcv_nxt = Seq(self.tcb.rcv_nxt)
         rcv_wnd = self.tcb.rcv_wnd
 
         _log(f"Receive window check: seq={seg_seq}, len={seg_len}, rcv_nxt={rcv_nxt}, rcv_wnd={rcv_wnd}",
@@ -1086,21 +1123,51 @@ class LoRaTCP:
         acceptable = False
 
         if seg_len == 0 and rcv_wnd == 0:
+            # Zero length segment, zero window: must be exactly RCV.NXT
             acceptable = (seg_seq == rcv_nxt)
             _log(f"Zero length segment, zero window: {acceptable}", LOGLEVEL_DEBUG)
         elif seg_len == 0 and rcv_wnd > 0:
-            acceptable = rcv_nxt <= seg_seq and seg_seq < (rcv_nxt + rcv_wnd)
+            # Zero length segment, positive window: RCV.NXT <= SEG.SEQ < RCV.NXT+RCV.WND
+            acceptable = rcv_nxt <= seg_seq < (rcv_nxt + rcv_wnd)
             _log(f"Zero length segment, positive window: {acceptable}", LOGLEVEL_DEBUG)
         elif seg_len > 0 and rcv_wnd == 0:
+            # Positive length segment, zero window: never acceptable
             acceptable = False
             _log(f"Positive length segment, zero window: {acceptable}", LOGLEVEL_DEBUG)
         elif seg_len > 0 and rcv_wnd > 0:
-            last_byte_seq = (seg_seq + seg_len - 1) % 65536
-            acceptable = (rcv_nxt <= seg_seq and seg_seq < (rcv_nxt + rcv_wnd)) or \
-                         (rcv_nxt <= last_byte_seq and last_byte_seq < (rcv_nxt + rcv_wnd))
+            # Positive length segment, positive window: Either first or last byte must be in window
+            last_byte_seq = seg_seq + seg_len - 1
+            acceptable = (rcv_nxt <= seg_seq < (rcv_nxt + rcv_wnd)) or \
+                         (rcv_nxt <= last_byte_seq < (rcv_nxt + rcv_wnd))
             _log(f"Positive length segment, positive window: last_byte_seq={last_byte_seq}, acceptable={acceptable}",
                  LOGLEVEL_DEBUG)
         return acceptable
+
+    def _validate_segment(self, seg: LoRaTCPSegment) -> bool:
+        """
+        Validate basic segment constraints to detect malformed segments.
+        Returns True if segment is valid, False otherwise.
+        """
+        try:
+            # Check payload size constraints
+            if len(seg.payload) > LoRaTCP_MAX_PAYLOAD_SIZE:
+                _log(f"Payload too large: {len(seg.payload)} > {LoRaTCP_MAX_PAYLOAD_SIZE}", LOGLEVEL_WARNING)
+                return False
+                
+            # Check for invalid flag combinations
+            if seg.syn_flag and seg.fin_flag:
+                _log("Invalid flag combination: SYN and FIN both set", LOGLEVEL_WARNING)
+                return False
+                
+            if seg.rst_flag and (seg.syn_flag or seg.fin_flag):
+                _log("Invalid flag combination: RST with SYN or FIN", LOGLEVEL_WARNING) 
+                return False
+                
+            return True
+            
+        except Exception as e:
+            _log(f"Exception during segment validation: {e}", LOGLEVEL_ERROR)
+            return False
 
     def _reassemble_received_data(self):
         """

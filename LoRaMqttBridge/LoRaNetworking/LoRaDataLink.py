@@ -326,25 +326,33 @@ class LoRaDataLink(Singleton):
                 _log(f'{e}', LOGLEVEL_WARNING)
 
         time.sleep_ms(100)
-        if self._duty_cycle_timer < 60 * 1000 and self._transmit_time > 36_000:
-            sleeping_time = time.ticks_diff(time.ticks_ms(), self._transmit_time)
+        
+        # Check duty cycle enforcement (1% duty cycle = 36 seconds per hour)
+        current_time = time.ticks_ms()
+        cycle_elapsed = time.ticks_diff(current_time, self._duty_cycle_timer)
+        
+        # If within the monitoring period (1 hour) and transmission time exceeded limit (36 seconds)
+        if cycle_elapsed < 60 * 60 * 1000 and self._transmit_time > 36_000:  # Within 1 hour and exceeded 36 seconds
+            # Calculate remaining time until next duty cycle period
+            remaining_cycle_time = (60 * 60 * 1000) - cycle_elapsed
+            
             if self.mode == LORA_DATALINK_MODE_GATEWAY:
-                if self.duty_cycle_message_displayed:
+                if not self.duty_cycle_message_displayed:
                     _log(
-                        f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages in the next {sleeping_time} ms...',
+                        f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages for the next {remaining_cycle_time} ms...',
                         LOGLEVEL_INFO)
                     self.duty_cycle_message_displayed = True
-                return
-            else:  # Only sensors should be sleeping, gateways keep receiving data
-                _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {sleeping_time} ms...',
+                return  # Skip transmission but continue receiving
+            else:  # Sensors must sleep to comply with duty cycle
+                _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {remaining_cycle_time} ms...',
                      LOGLEVEL_INFO)
-                time.sleep_ms(sleeping_time)
-        elif time.ticks_diff(time.ticks_ms(), self._duty_cycle_timer) > 60 * 1000:
-            self._duty_cycle_timer = time.ticks_ms()
+                time.sleep_ms(remaining_cycle_time)
+        elif cycle_elapsed >= 60 * 60 * 1000:  # Hour has passed, reset duty cycle
+            self._duty_cycle_timer = current_time
             self._transmit_time = 0
             self.duty_cycle_message_displayed = False
             self.busy_timeout_retries = 0
-            _log("Reset duty cycle timer", LOGLEVEL_INFO)
+            _log("Reset duty cycle timer after 1 hour", LOGLEVEL_INFO)
         if len(self._transmitQueue) > 0:
             lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
             if lora_dataframe is None:

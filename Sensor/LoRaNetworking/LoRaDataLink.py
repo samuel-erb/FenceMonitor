@@ -326,25 +326,33 @@ class LoRaDataLink(Singleton):
                 _log(f'{e}', LOGLEVEL_WARNING)
 
         time.sleep_ms(100)
-        if self._duty_cycle_timer < 60 * 1000 and self._transmit_time > 36_000:
-            sleeping_time = time.ticks_diff(time.ticks_ms(), self._transmit_time)
+
+        # Check duty cycle enforcement (1% duty cycle = 36 seconds per hour)
+        current_time = time.ticks_ms()
+        cycle_elapsed = time.ticks_diff(current_time, self._duty_cycle_timer)
+
+        # If within the monitoring period (1 hour) and transmission time exceeded limit (36 seconds)
+        if cycle_elapsed < 60 * 60 * 1000 and self._transmit_time > 36_000:  # Within 1 hour and exceeded 36 seconds
+            # Calculate remaining time until next duty cycle period
+            remaining_cycle_time = (60 * 60 * 1000) - cycle_elapsed
+
             if self.mode == LORA_DATALINK_MODE_GATEWAY:
-                if self.duty_cycle_message_displayed:
+                if not self.duty_cycle_message_displayed:
                     _log(
-                        f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages in the next {sleeping_time} ms...',
+                        f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages for the next {remaining_cycle_time} ms...',
                         LOGLEVEL_INFO)
                     self.duty_cycle_message_displayed = True
-                return
-            else:  # Only sensors should be sleeping, gateways keep receiving data
-                _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {sleeping_time} ms...',
+                return  # Skip transmission but continue receiving
+            else:  # Sensors must sleep to comply with duty cycle
+                _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {remaining_cycle_time} ms...',
                      LOGLEVEL_INFO)
-                time.sleep_ms(sleeping_time)
-        elif time.ticks_diff(time.ticks_ms(), self._duty_cycle_timer) > 60 * 1000:
-            self._duty_cycle_timer = time.ticks_ms()
+                time.sleep_ms(remaining_cycle_time)
+        elif cycle_elapsed >= 60 * 60 * 1000:  # Hour has passed, reset duty cycle
+            self._duty_cycle_timer = current_time
             self._transmit_time = 0
             self.duty_cycle_message_displayed = False
             self.busy_timeout_retries = 0
-            _log("Reset duty cycle timer", LOGLEVEL_INFO)
+            _log("Reset duty cycle timer after 1 hour", LOGLEVEL_INFO)
         if len(self._transmitQueue) > 0:
             lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
             if lora_dataframe is None:
@@ -431,8 +439,6 @@ class LoRaDataLink(Singleton):
                 sensor_hex = sensor_address.hex() if sensor_address else "unknown"
                 _log(f"Keeping frame for inactive sensor {sensor_hex} in queue", LOGLEVEL_DEBUG)
 
-
-
         return active_frame
 
     def add_to_send_queue(self, data: bytes):
@@ -453,7 +459,9 @@ class LoRaDataLink(Singleton):
         Prüft, ob momentan keine Pakete gesendet oder empfangen werden,
         damit Energiesparmodus aktiviert werden kann.
         """
-        _log(f"is_sleep_ready: transmitQueue={len(self._transmitQueue)}, receiveQueue={len(self._receiveQueue)} -> {len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0}", LOGLEVEL_INFO)
+        _log(
+            f"is_sleep_ready: transmitQueue={len(self._transmitQueue)}, receiveQueue={len(self._receiveQueue)} -> {len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0}",
+            LOGLEVEL_INFO)
         return len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0
 
     def woke_up(self) -> None:
@@ -465,7 +473,7 @@ class LoRaDataLink(Singleton):
             raise Exception("[LoRaDataLink] Called woke_up method with mode LORA_DATALINK_MODE_GATEWAY")
         _log("Woke-up")
         self.busy_timeout_retries = 0
-        #self._driver = configure_modem()
+        # self._driver = configure_modem()
         time.sleep_ms(100)
         while self._is_channel_active():
             time.sleep_ms(25)
