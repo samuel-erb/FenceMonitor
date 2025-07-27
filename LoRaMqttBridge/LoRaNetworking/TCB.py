@@ -47,7 +47,7 @@ class TCB:
     STATE_TIME_WAIT = 10
 
     RETRANSMISSION_TIMEOUT_MS = 1_500
-    TIME_WAIT_TIMEOUT_MS = 1_000
+    TIME_WAIT_TIMEOUT_MS = 30_000  # 30 seconds TIME_WAIT timeout
 
     __slots__ = ('remote_ip', 'remote_port', 'socket_id', 'active_open', 'time_wait_timer', 'user_timeout_timer',
                  'retransmission_timeout_timer', 'snd_wnd', 'rcv_wnd', 'state', 'retransmission_queue',
