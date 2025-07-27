@@ -2,22 +2,38 @@ import gc
 from micropython import const
 import machine
 import micropython_time as time
-from config.lora_config import configure_modem, calculate_lora_airtime_ms
+from config.lora_config import configure_modem, diagnose_lora
 from LoRaNetworking.Queue import Queue
 from Singleton import Singleton
 from lora import RxPacket, SX1262
 
-LORA_DATALINK_MODE_SENSOR = const(0)
-LORA_DATALINK_MODE_GATEWAY = const(1)
-LORA_DATALINK_MODE = LORA_DATALINK_MODE_GATEWAY
-
-
+# Logging Konstanten
 LOGLEVEL_DEBUG = const(0)
 LOGLEVEL_INFO = const(1)
 LOGLEVEL_WARNING = const(2)
 LOGLEVEL_ERROR = const(3)
-
 DATALINK_LOG_LEVEL = const(LOGLEVEL_DEBUG)
+
+# Betriebsmodus der DataLink Layer
+LORA_DATALINK_MODE_SENSOR = const(0)
+LORA_DATALINK_MODE_GATEWAY = const(1)
+LORA_DATALINK_MODE = LORA_DATALINK_MODE_GATEWAY
+
+# Konstanten für Längen
+DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
+DataFrameMaxPayloadLength = const(249)  # 256 - DataFrameHeaderLength -> 249 Maximale Länge des Payloads im LoRa-Frame
+
+# DataFrame Typen
+DATAFRAME_TYPE = {
+    0x00: "LoRaDataLink_Woke_Up",
+    0x01: "LoRaTCP_Segment"
+}
+
+LoRaDataLink_Woke_Up = const(0x00)
+LoRaTCP_Segment = const(0x01)
+
+# Timeout in Millisekunden nach dem ein Sensor als inaktiv betrachtet wird
+SENSOR_ACTIVE_TIMEOUT = 10_000
 
 
 def _log(message: str, loglevel=LOGLEVEL_DEBUG):
@@ -29,24 +45,6 @@ def _log(message: str, loglevel=LOGLEVEL_DEBUG):
         print(f"[LoRaDataLink] \033[33mWarning: {message}\033[0m")
     elif loglevel == LOGLEVEL_ERROR and DATALINK_LOG_LEVEL <= LOGLEVEL_ERROR:
         print(f"[LoRaDataLink] \033[31mError: {message}\033[0m")
-
-
-# Alternative zu Enums in MicroPython:
-# Wir definieren einfache Konstanten und ein Dictionary für die Namen.
-# Damit sparen wir den Enum-Import und bleiben MicroPython-kompatibel.
-DATAFRAME_TYPE = {
-    0x00: "LoRaDataLink_Woke_Up",
-    0x01: "LoRaTCP_Segment"
-}
-
-LoRaDataLink_Woke_Up = const(0x00)
-LoRaTCP_Segment = const(0x01)
-
-DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
-DataFrameMaxPayloadLength = const(248)  # 255 - DataFrameHeaderLength -> 248 Maximale Länge des Payloads im LoRa-Frame
-
-# Timeout of communication in milliseconds after which a sensor is regarded as inactive
-SENSOR_ACTIVE_TIMEOUT = 10_000
 
 
 class SensorState:
@@ -80,78 +78,6 @@ class SensorState:
             if socket_id in instance.socket_ids:
                 state = instance
         return state
-
-
-def diagnose_lora(lora_modem: SX1262):
-    """Führt eine Diagnose des SX1262 LoRa-Modems durch"""
-    # SX1262 Register
-    REG_LSYNCRH = 0x740
-    REG_LSYNCRL = 0x741
-    REG_RX_GAIN = 0x08AC
-    _log("\n=== SX1262 LoRa Modem Diagnose ===")
-
-    # Status abfragen
-    try:
-        status = lora_modem._get_status()
-        mode, cmd_status = status
-        _log(f"Status Mode: {mode} (2=STDBY_RC, 3=STDBY_HSE32, 5=RX, 6=TX)")
-        _log(f"Command Status: {cmd_status}")
-    except Exception as e:
-        _log(f"Fehler beim Status-Abruf: {e}")
-
-    # Fehler abfragen
-    try:
-        error_status = lora_modem._check_error()
-        _log(f"Error Status: {error_status} (Keine Fehler wenn kein Fehler geworfen wurde)")
-    except Exception as e:
-        _log(f"Aktuelle Fehler: {e}")
-
-    # Frequenz (aus gespeichertem Wert)
-    freq_mhz = lora_modem._rf_freq_hz / 1_000_000
-    _log(f"Konfigurierte Frequenz: {freq_mhz:.3f} MHz")
-
-    # Spreading Factor
-    _log(f"Spreading Factor: {lora_modem._sf}")
-
-    # Bandwidth
-    _log(f"Bandwidth: {lora_modem._bw} kHz")
-
-    # Coding Rate
-    _log(f"Coding Rate: 4/{lora_modem._coding_rate}")
-
-    # Preamble
-    _log(f"Preamble Länge: {lora_modem._preamble_len}")
-
-    # Output Power
-    _log(f"Output Power: {lora_modem._output_power} dBm")
-
-    # CRC
-    _log(f"CRC: {'Aktiviert' if lora_modem._crc_en else 'Deaktiviert'}")
-
-    # Implicit Header
-    _log(f"Header Mode: {'Implicit' if lora_modem._implicit_header else 'Explicit'}")
-
-    # IQ Einstellungen
-    _log(f"IQ RX Invert: {lora_modem._invert_iq[0]}")
-    _log(f"IQ TX Invert: {lora_modem._invert_iq[1]}")
-
-    # Sync Word Register lesen
-    try:
-        sync_h = lora_modem._reg_read(REG_LSYNCRH)
-        sync_l = lora_modem._reg_read(REG_LSYNCRL)
-        syncword = (sync_h << 8) | sync_l
-        _log(f"Sync Word: 0x{syncword:04X}")
-    except Exception as e:
-        _log(f"Fehler beim Sync Word Lesen: {e}")
-
-    # RX Gain Register
-    try:
-        rx_gain = lora_modem._reg_read(REG_RX_GAIN)
-        _log(f"RX Gain: 0x{rx_gain:02X} ({'Boost' if rx_gain == 0x96 else 'Normal'})")
-    except Exception as e:
-        _log(f"Fehler beim RX Gain Lesen: {e}")
-
-    _log("=== Diagnose abgeschlossen ===\n")
 
 
 class LoRaDataFrame:
@@ -228,11 +154,11 @@ class LoRaDataLink(Singleton):
         self.listening_sockets = list()  # type: List[LoRaTCP]
         self._receiveQueue = Queue(maxsize=10)
         self._transmitQueue = Queue(maxsize=10)
-        self._duty_cycle_timer = time.ticks_ms() # Wird jede Stunde auf die aktuelle Zeit gesetzt
-        self._transmit_time = 0 # Enthält die kumulierte Sendezeit
+        self._duty_cycle_timer = time.ticks_ms()  # Wird jede Stunde auf die aktuelle Zeit gesetzt
+        self._transmit_time = 0  # Enthält die kumulierte Sendezeit
         self._duty_cycle_message_displayed = False
-        self._transmission_block = False # Einfaches Lock um die Kommunikation zu pausieren
-        self._busy_timeout_retries = 0 # Zähler für Busy-Timeout Fehler
+        self._transmission_block = False  # Einfaches Lock um die Kommunikation zu pausieren
+        self._busy_timeout_retries = 0  # Zähler für Busy-Timeout Fehler
 
     def register_listening_socket(self, socket: "LoRaTCP"):
         if self.mode == LORA_DATALINK_MODE_SENSOR:
@@ -268,7 +194,7 @@ class LoRaDataLink(Singleton):
                     time.sleep_ms(500)
                     self._driver.standby()
                     time.sleep_ms(500)
-                    if (self._busy_timeout_retries == 10):
+                    if (self._busy_timeout_retries == 10 and self.mode == LORA_DATALINK_MODE_SENSOR):
                         machine.reset()
                     _log("Recovery successful")
                     self._busy_timeout_retries += 1
@@ -282,7 +208,7 @@ class LoRaDataLink(Singleton):
             try:
                 lora_dataframe = LoRaDataFrame.from_bytes(rx_packet)
                 _log(f'Received dataframe: {lora_dataframe}')
-                # Filter: Nur Frames akzeptieren, die an dieses Gerät adressiert sind
+                # Nur Frames akzeptieren, die an dieses Gerät adressiert sind
                 # oder wenn wir die Basisstation sind, werden alle Dataframes akzeptiert
                 if self.mode == LORA_DATALINK_MODE_GATEWAY or self.sensor_address == lora_dataframe.address:
                     if lora_dataframe.data_type == LoRaTCP_Segment:
@@ -324,28 +250,33 @@ class LoRaDataLink(Singleton):
                 _log(f'{e}', LOGLEVEL_WARNING)
 
         time.sleep_ms(100)
-        
-        # Check duty cycle enforcement (1% duty cycle = 36 seconds per hour)
+
+        # Duty cycle Überprüfung (1% duty cycle = 36 Sekunden/Stunde)
         current_time = time.ticks_ms()
         cycle_elapsed = time.ticks_diff(current_time, self._duty_cycle_timer)
-        
-        # If within the monitoring period (1 hour) and transmission time exceeded limit (36 seconds)
-        if cycle_elapsed < 60 * 60 * 1000 and self._transmit_time > 36_000:  # Within 1 hour and exceeded 36 seconds
-            # Calculate remaining time until next duty cycle period
-            remaining_cycle_time = (60 * 60 * 1000) - cycle_elapsed
-            
+
+        # Wenn innerhalb der aktuellen Periode und die Übertragungszeit überschreitet 36 Sekunden
+        if cycle_elapsed < 3_600_000 and self._transmit_time > 36_000:  # Within 1 hour and exceeded 36 seconds
+            # Berechne die verbleibende Zeit bis zum Ende der Periode
+            remaining_cycle_time = 3_600_000 - cycle_elapsed  # (Eine Stunde in Millisekunden) - (der Duty Cycle Periode)
+
             if self.mode == LORA_DATALINK_MODE_GATEWAY:
                 if not self._duty_cycle_message_displayed:
                     _log(
                         f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages for the next {remaining_cycle_time} ms...',
                         LOGLEVEL_INFO)
                     self._duty_cycle_message_displayed = True
-                return  # Skip transmission but continue receiving
-            else:  # Sensors must sleep to comply with duty cycle
+                return  # Überspringe das Senden aber empfange weiterhin
+            else:  # Sensoren gehen in den Schlafmodus
                 _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {remaining_cycle_time} ms...',
                      LOGLEVEL_INFO)
-                time.sleep_ms(remaining_cycle_time)
-        elif cycle_elapsed >= 60 * 60 * 1000:  # Hour has passed, reset duty cycle
+                try:
+                    import App.LightSleepManager
+                    LightSleepManager().sleep(remaining_cycle_time, force=True)
+                except Exception:
+                    _log("Could not import LightSleepManager. Using time.sleep_ms", LOGLEVEL_WARNING)
+                    time.sleep_ms(remaining_cycle_time)
+        elif cycle_elapsed >= 60 * 60 * 1000:  # Eine Stunde ist vergangen, starte neue Periode
             self._duty_cycle_timer = current_time
             self._transmit_time = 0
             self._duty_cycle_message_displayed = False
@@ -355,14 +286,6 @@ class LoRaDataLink(Singleton):
             lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
             if lora_dataframe is None:
                 return
-            # Warte bis Kanal frei
-            cad_message_displayed = False
-            while self._is_channel_active():
-                if not cad_message_displayed:
-                    _log('Wait for channel access...')
-                    cad_message_displayed = True
-                time.sleep_ms(5)
-            _log('Channel is free to send')
             start = time.ticks_ms()
             try:
                 self._driver.send(lora_dataframe.to_bytes())
@@ -381,7 +304,7 @@ class LoRaDataLink(Singleton):
                         time.sleep_ms(500)
                         self._driver.standby()
                         time.sleep_ms(500)
-                        if (self._busy_timeout_retries == 10):
+                        if (self._busy_timeout_retries == 10 and self.mode == LORA_DATALINK_MODE_SENSOR):
                             machine.reset()
                         _log("Recovery successful")
                         self._busy_timeout_retries += 1
@@ -392,19 +315,11 @@ class LoRaDataLink(Singleton):
                         self._transmission_block = False
             _log(f'Sent packet: {lora_dataframe}')
 
-    def _is_channel_active(self) -> bool:
-        """
-        Platzhalter für Channel Activity Detection (CAD).
-        Sollte prüfen, ob aktuell jemand sendet, um Kollisionen zu vermeiden.
-        """
-        # TODO
-        return False
-
     def _find_dataframe_for_active_sensor(self):
         """
-        Durchsucht die transmitQueue nach einem Dataframe für einen aktiven Sensor.
-        Gibt das erste gefundene Dataframe zurück und entfernt es aus der Queue.
-        Dataframes für inaktive Sensoren bleiben in der Queue für späteren Versuch.
+        Durchsucht den Übertragungspuffer nach einem Dataframe für einen aktiven Sensor.
+        Gibt das erste gefundene Dataframe zurück und entfernt es aus der Warteschlange.
+        Dataframes für inaktive Sensoren bleiben in der Warteschlange für einen späteren Versuch.
         """
         if self.mode == LORA_DATALINK_MODE_SENSOR:
             return self._transmitQueue.pop_sync()
@@ -412,7 +327,7 @@ class LoRaDataLink(Singleton):
         frames_to_check = []
         active_frame = None
 
-        # Alle Frames aus der Queue extrahieren
+        # Alle Frames aus der Warteschlange extrahieren
         while len(self._transmitQueue) > 0:
             frame = self._transmitQueue.pop_sync()
             if frame is not None:
@@ -429,19 +344,21 @@ class LoRaDataLink(Singleton):
                     active_frame = frame
                     _log(f"Found frame for active sensor {sensor_address.hex()}", LOGLEVEL_DEBUG)
                 else:
-                    # Weitere Frames für aktive Sensoren zurück in die Queue
+                    # Weitere Frames für aktive Sensoren zurück in die Warteschlange
                     self._transmitQueue.put_sync(frame)
             else:
-                # Sensor ist inaktiv - Frame zurück in die Queue für späteren Versuch
+                # Sensor ist inaktiv - Frame zurück in die Warteschlange für späteren Versuch
                 self._transmitQueue.put_sync(frame)
                 sensor_hex = sensor_address.hex() if sensor_address else "unknown"
                 _log(f"Keeping frame for inactive sensor {sensor_hex} in queue", LOGLEVEL_DEBUG)
 
-
-
         return active_frame
 
     def add_to_send_queue(self, data: bytes):
+        """
+        Methode zum Hinzufügen von Daten zum Übertragungspuffer.
+        Die ersten 6 Bytes werden als Socket-ID im Big-Endian Format interpretiert.
+        """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
             socket_id = int.from_bytes(data[0:6], 'big')
             state = SensorState.get_by_socket_id(socket_id)
@@ -459,22 +376,21 @@ class LoRaDataLink(Singleton):
         Prüft, ob momentan keine Pakete gesendet oder empfangen werden,
         damit Energiesparmodus aktiviert werden kann.
         """
-        _log(f"is_sleep_ready: transmitQueue={len(self._transmitQueue)}, receiveQueue={len(self._receiveQueue)} -> {len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0}", LOGLEVEL_INFO)
+        _log(
+            f"is_sleep_ready: transmitQueue={len(self._transmitQueue)}, receiveQueue={len(self._receiveQueue)} -> {len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0}",
+            LOGLEVEL_INFO)
         return len(self._transmitQueue) == 0 and len(self._receiveQueue) == 0
 
     def woke_up(self) -> None:
         """
-        Methode um dem Netz zu signalisieren, dass der Knoten aus dem Schlafmodus erwacht ist.
+        Methode um dem Gateway zu signalisieren, dass der Knoten aus dem Schlafmodus erwacht ist.
         Stoppt die Sendeschleife, wartet bis Kanal frei ist und sendet ein Wake-up Paket.
         """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
             raise Exception("[LoRaDataLink] Called woke_up method with mode LORA_DATALINK_MODE_GATEWAY")
         _log("Woke-up")
         self._busy_timeout_retries = 0
-        #self._driver = configure_modem()
         time.sleep_ms(100)
-        while self._is_channel_active():
-            time.sleep_ms(25)
         wake_up_message = LoRaDataFrame(self.sensor_address, LoRaDataLink_Woke_Up, b'')
         self._driver.standby()
         time.sleep_ms(100)

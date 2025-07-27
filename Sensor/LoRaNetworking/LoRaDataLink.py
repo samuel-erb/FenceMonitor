@@ -2,22 +2,38 @@ import gc
 from micropython import const
 import machine
 import time
-from config.lora_config import configure_modem, calculate_lora_airtime_ms
+from config.lora_config import configure_modem, diagnose_lora
 from LoRaNetworking.Queue import Queue
 from Singleton import Singleton
 from lora import RxPacket, SX1262
 
-LORA_DATALINK_MODE_SENSOR = const(0)
-LORA_DATALINK_MODE_GATEWAY = const(1)
-LORA_DATALINK_MODE = LORA_DATALINK_MODE_SENSOR
-
-
+# Logging Konstanten
 LOGLEVEL_DEBUG = const(0)
 LOGLEVEL_INFO = const(1)
 LOGLEVEL_WARNING = const(2)
 LOGLEVEL_ERROR = const(3)
-
 DATALINK_LOG_LEVEL = const(LOGLEVEL_DEBUG)
+
+# Betriebsmodus der DataLink Layer
+LORA_DATALINK_MODE_SENSOR = const(0)
+LORA_DATALINK_MODE_GATEWAY = const(1)
+LORA_DATALINK_MODE = LORA_DATALINK_MODE_GATEWAY
+
+# Konstanten für Längen
+DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
+DataFrameMaxPayloadLength = const(249)  # 256 - DataFrameHeaderLength -> 249 Maximale Länge des Payloads im LoRa-Frame
+
+# DataFrame Typen
+DATAFRAME_TYPE = {
+    0x00: "LoRaDataLink_Woke_Up",
+    0x01: "LoRaTCP_Segment"
+}
+
+LoRaDataLink_Woke_Up = const(0x00)
+LoRaTCP_Segment = const(0x01)
+
+# Timeout in Millisekunden nach dem ein Sensor als inaktiv betrachtet wird
+SENSOR_ACTIVE_TIMEOUT = 10_000
 
 
 def _log(message: str, loglevel=LOGLEVEL_DEBUG):
@@ -29,25 +45,6 @@ def _log(message: str, loglevel=LOGLEVEL_DEBUG):
         print(f"[LoRaDataLink] \033[33mWarning: {message}\033[0m")
     elif loglevel == LOGLEVEL_ERROR and DATALINK_LOG_LEVEL <= LOGLEVEL_ERROR:
         print(f"[LoRaDataLink] \033[31mError: {message}\033[0m")
-
-
-# Alternative zu Enums in MicroPython:
-# Wir definieren einfache Konstanten und ein Dictionary für die Namen.
-# Damit sparen wir den Enum-Import und bleiben MicroPython-kompatibel.
-DATAFRAME_TYPE = {
-    0x00: "LoRaDataLink_Woke_Up",
-    0x01: "LoRaTCP_Segment"
-}
-
-LoRaDataLink_Woke_Up = const(0x00)
-LoRaTCP_Segment = const(0x01)
-
-DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
-DataFrameMaxPayloadLength = const(248)  # 255 - DataFrameHeaderLength -> 248 Maximale Länge des Payloads im LoRa-Frame
-
-# Timeout of communication in milliseconds after which a sensor is regarded as inactive
-SENSOR_ACTIVE_TIMEOUT = 10_000
-
 
 class SensorState:
     __slots__ = ('sensor_address', 'socket_ids', 'last_communication')
@@ -80,79 +77,6 @@ class SensorState:
             if socket_id in instance.socket_ids:
                 state = instance
         return state
-
-
-def diagnose_lora(lora_modem: SX1262):
-    """Führt eine Diagnose des SX1262 LoRa-Modems durch"""
-    # SX1262 Register
-    REG_LSYNCRH = 0x740
-    REG_LSYNCRL = 0x741
-    REG_RX_GAIN = 0x08AC
-    _log("\n=== SX1262 LoRa Modem Diagnose ===")
-
-    # Status abfragen
-    try:
-        status = lora_modem._get_status()
-        mode, cmd_status = status
-        _log(f"Status Mode: {mode} (2=STDBY_RC, 3=STDBY_HSE32, 5=RX, 6=TX)")
-        _log(f"Command Status: {cmd_status}")
-    except Exception as e:
-        _log(f"Fehler beim Status-Abruf: {e}")
-
-    # Fehler abfragen
-    try:
-        error_status = lora_modem._check_error()
-        _log(f"Error Status: {error_status} (Keine Fehler wenn kein Fehler geworfen wurde)")
-    except Exception as e:
-        _log(f"Aktuelle Fehler: {e}")
-
-    # Frequenz (aus gespeichertem Wert)
-    freq_mhz = lora_modem._rf_freq_hz / 1_000_000
-    _log(f"Konfigurierte Frequenz: {freq_mhz:.3f} MHz")
-
-    # Spreading Factor
-    _log(f"Spreading Factor: {lora_modem._sf}")
-
-    # Bandwidth
-    _log(f"Bandwidth: {lora_modem._bw} kHz")
-
-    # Coding Rate
-    _log(f"Coding Rate: 4/{lora_modem._coding_rate}")
-
-    # Preamble
-    _log(f"Preamble Länge: {lora_modem._preamble_len}")
-
-    # Output Power
-    _log(f"Output Power: {lora_modem._output_power} dBm")
-
-    # CRC
-    _log(f"CRC: {'Aktiviert' if lora_modem._crc_en else 'Deaktiviert'}")
-
-    # Implicit Header
-    _log(f"Header Mode: {'Implicit' if lora_modem._implicit_header else 'Explicit'}")
-
-    # IQ Einstellungen
-    _log(f"IQ RX Invert: {lora_modem._invert_iq[0]}")
-    _log(f"IQ TX Invert: {lora_modem._invert_iq[1]}")
-
-    # Sync Word Register lesen
-    try:
-        sync_h = lora_modem._reg_read(REG_LSYNCRH)
-        sync_l = lora_modem._reg_read(REG_LSYNCRL)
-        syncword = (sync_h << 8) | sync_l
-        _log(f"Sync Word: 0x{syncword:04X}")
-    except Exception as e:
-        _log(f"Fehler beim Sync Word Lesen: {e}")
-
-    # RX Gain Register
-    try:
-        rx_gain = lora_modem._reg_read(REG_RX_GAIN)
-        _log(f"RX Gain: 0x{rx_gain:02X} ({'Boost' if rx_gain == 0x96 else 'Normal'})")
-    except Exception as e:
-        _log(f"Fehler beim RX Gain Lesen: {e}")
-
-    _log("=== Diagnose abgeschlossen ===\n")
-
 
 class LoRaDataFrame:
     __slots__ = ("address", "data_type", "payload", "sockets", "listening_sockets")
@@ -199,7 +123,6 @@ class LoRaDataFrame:
     def __repr__(self):
         type_name = DATAFRAME_TYPE.get(self.data_type, "Unknown")
         return f"<LoRaDataFrame address={self.address.hex()} type={type_name} payload_len={len(self.payload)}>"
-
 
 class LoRaDataLink(Singleton):
     """
