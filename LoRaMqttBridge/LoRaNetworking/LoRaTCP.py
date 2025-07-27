@@ -11,8 +11,8 @@ import gc
 from micropython import const
 import micropython_time as time
 
-# DataFrameMaxPayloadLength - (2 + 2 + 2 + 1) -> 241, Socket_ID, Flags, Seq_Number, ACK_Number
-LoRaTCP_MAX_PAYLOAD_SIZE = const(241)
+# DATAFRAME_MAX_PAYLOAD_LENGTH - Header(2 + 2 + 2 + 1) -> 242: Socket_ID, Flags, Seq_Number, ACK_Number
+LoRaTCP_MAX_PAYLOAD_SIZE = const(242)
 
 LOGLEVEL_DEBUG = const(0)
 LOGLEVEL_INFO = const(1)
@@ -69,21 +69,28 @@ def int_to_ip(ip_int: int) -> str:
 
 class LoRaTCP:
     """
-    Wir direkt als drop in replacement verwendet
-    Kein Singleton mehr
-    Jede Verbindung ist ein LoRaTCP
-    Jeder LoRaTCP hat einen buffer der freigegeben daten enthält. diese werden über recv von der Anwendung gelesen
-    implementiert alle methode aus socket
-    führt arbeit über run mehtode aus -> kann auf basis station als thread eingesetzt werden
-    statische liste mit allen instanzen -> auf sensor wird über diese liste iteriert und run ausgeführt
+    Implementiert ein TCP-ähnliches Protokoll über LoRa.
+
+    Diese Klasse kann als Drop-In-Replacement für ein TCP/IP-Socket verwendet werden
+    und bietet die gleichen Methoden und Verhaltensweisen wie ein Standard-Socket.
+    Unterstützt Verbindungsaufbau, Datenübertragung, Flusskontrolle und ordnungsgemäßes
+    Verbindungsende über das LoRa-Funkprotokoll.
     """
 
-    MAX_RETRANSMISSION_ATTEMPTS = 15
+    MAX_RETRANSMISSION_ATTEMPTS = 25
 
     INSTANCES = list()
-    __slots__ = ('data_link', 'tcb', '_incoming_dataframes', 'last_run', '_timeout', '_blocking', 'last_retransmission_sequence_number', 'retransmission_attempts')
+    __slots__ = ('data_link', 'tcb', '_incoming_dataframes', 'last_run', '_timeout', '_blocking',
+                 'last_retransmission_sequence_number', 'retransmission_attempts')
 
     def __init__(self):
+        """
+        Initialisiert eine neue LoRaTCP-Instanz.
+
+        Erstellt die notwendigen Datenstrukturen für TCP-Verbindungsmanagement,
+        initialisiert den Transmission Control Block (TCB) und registriert die
+        Instanz in der globalen Liste für Verwaltungszwecke.
+        """
         _log("Initializing new LoRaTCP instance", LOGLEVEL_INFO)
         self.data_link = LoRaDataLink()
         self.tcb = TCB("", 0)  # type: TCB
@@ -96,10 +103,24 @@ class LoRaTCP:
         self.retransmission_attempts = 0
         LoRaTCP.INSTANCES.append(self)
         _log(f"LoRaTCP instance created. Total instances: {len(LoRaTCP.INSTANCES)}", LOGLEVEL_INFO)
-        _log(f"Initial state: socket_id={self.tcb.socket_id}, state={TCB_STATES[self.tcb.state]}, blocking={self._blocking}",
-             LOGLEVEL_DEBUG)
+        _log(
+            f"Initial state: socket_id={self.tcb.socket_id}, state={TCB_STATES[self.tcb.state]}, blocking={self._blocking}",
+            LOGLEVEL_DEBUG)
 
     def connect(self, peer):
+        """
+        Stellt eine Verbindung zu einem entfernten TCP her (aktive Verbindung).
+
+        Initiiert den TCP-Handshake durch Senden eines SYN-Segments an den
+        angegebenen Peer. Die Methode wechselt den Socket-Zustand von CLOSED
+        zu SYN_SENT und wartet auf die Antwort des Peers.
+
+        Args:
+            peer: Tupel aus (IP-Adresse, Port) des Ziels
+
+        Raises:
+            OSError: Wenn das Socket nicht im CLOSED-Zustand ist
+        """
         address, port = peer
         _log(f"Attempting connection to peer: {address}:{port}", LOGLEVEL_INFO)
         if self.tcb.state == TCB.STATE_CLOSED:
@@ -119,10 +140,23 @@ class LoRaTCP:
             self.tcb.state = TCB.STATE_SYN_SENT
             _log(f"State changed to SYN_SENT. Connection initiation complete", LOGLEVEL_INFO)
         else:
-            _log(f"Cannot connect: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})", LOGLEVEL_ERROR)
+            _log(f"Cannot connect: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})",
+                 LOGLEVEL_ERROR)
             raise OSError("Socket not in CLOSED state for connect()")
 
     def settimeout(self, timeout):
+        """
+        Setzt das Timeout-Verhalten des Sockets.
+
+        Konfiguriert wie lange Operationen warten sollen, bevor sie einen
+        Timeout-Fehler werfen. Unterstützt blockierende, nicht-blockierende
+        und zeitbegrenzte Modi.
+
+        Args:
+            timeout: None (blockierend ohne Timeout),
+                    0 (nicht-blockierend),
+                    float (blockierend mit Timeout in Sekunden)
+        """
         _log(f"Setting timeout: {timeout}", LOGLEVEL_DEBUG)
         if timeout is None:
             self._blocking = True
@@ -138,6 +172,15 @@ class LoRaTCP:
             _log(f"Socket set to blocking mode with timeout: {timeout}s", LOGLEVEL_DEBUG)
 
     def setblocking(self, flag):
+        """
+        Setzt den blockierenden Modus des Sockets.
+
+        Steuert ob Socket-Operationen blockieren oder sofort zurückkehren,
+        wenn keine Daten verfügbar sind.
+
+        Args:
+            flag: True für blockierenden Modus, False für nicht-blockierenden Modus
+        """
         _log(f"Setting blocking flag: {flag}", LOGLEVEL_DEBUG)
         self._blocking = bool(flag)
         if flag:
@@ -149,12 +192,20 @@ class LoRaTCP:
 
     def write(self, data, size=None):
         """
-        Standard Socket write() Verhalten implementieren:
-        - Wenn size angegeben ist, nur die ersten 'size' Bytes senden
-        - Wenn size None ist, alle Daten senden
+        Schreibt Daten in das Socket (Socket write() API-kompatibel).
+
+        Implementiert das Standard-Socket write() Verhalten. Konvertiert
+        automatisch Strings zu Bytes und unterstützt optionale Größenbegrenzung.
+
+        Args:
+            data: Zu sendende Daten (str oder bytes)
+            size: Optionale maximale Anzahl zu sendender Bytes
+
+        Returns:
+            int: Anzahl der tatsächlich geschriebenen Bytes
         """
         if isinstance(data, str):
-            data =  data.encode('utf-8')
+            data = data.encode('utf-8')
         if size is not None:
             # Nur die ersten 'size' Bytes senden
             actual_data = data[:size]
@@ -176,12 +227,16 @@ class LoRaTCP:
 
     def listen(self):
         """
-        Event_Passive_OPEN
-        Diese Methode wird auf der Basisstation verwendet, um auf eine neue Verbindung eines Sensors zu warten.
-        Die Methode registriert sich zunächst bei der LoRaDataLink.
-        Diese speichert eine Referenz zu der Instanz der LoRaTCP-Klasse,
-        sodass sie bei einem LoRaDataFrame mit einer unbekannten Socket-ID die Daten an diese weitergeben kann.
-        :return:
+        Versetzt das Socket in den Listen-Modus für eingehende Verbindungen.
+
+        Implementiert passive Verbindungsöffnung (EVENT_Passive_OPEN).
+        Das Socket wartet auf eingehende Verbindungsanfragen von Clients.
+        Wird typischerweise auf der Basisstation verwendet, um auf Sensor-
+        Verbindungen zu warten. Registriert sich bei der LoRaDataLink für
+        unbekannte Socket-IDs.
+
+        Raises:
+            OSError: Wenn das Socket nicht im CLOSED-Zustand ist
         """
         _log("Listen method called", LOGLEVEL_INFO)
         if self.tcb.state == TCB.STATE_CLOSED:
@@ -191,17 +246,36 @@ class LoRaTCP:
             self.tcb.snd_nxt = self.tcb.iss
             self.tcb.active_open = False
             self.tcb.state = TCB.STATE_LISTEN
-            _log(f"TCB configured: active_open={self.tcb.active_open}, state={TCB_STATES[self.tcb.state]}", LOGLEVEL_DEBUG)
+            _log(f"TCB configured: active_open={self.tcb.active_open}, state={TCB_STATES[self.tcb.state]}",
+                 LOGLEVEL_DEBUG)
             self.data_link.register_listening_socket(self)
             _log("Socket registered with data link as listening socket", LOGLEVEL_INFO)
             while self.tcb.state == TCB.STATE_LISTEN:
                 time.sleep_ms(500)
         else:
-            _log(f"Cannot listen: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})", LOGLEVEL_ERROR)
+            _log(f"Cannot listen: socket not in CLOSED state (current state: {TCB_STATES[self.tcb.state]})",
+                 LOGLEVEL_ERROR)
             raise OSError("Socket not in CLOSED state for listen()")
 
     def send(self, data: bytes):
-        _log(f"Send called with data length: {len(data)}, current state: {self.tcb.state}, data: {data.hex()}", LOGLEVEL_INFO)
+        """
+        Sendet Daten über die bestehende Verbindung.
+
+        Fügt Daten zum Sendepuffer hinzu, der je nach Verbindungszustand
+        sofort oder verzögert übertragen wird. Implementiert TCP-Semantik
+        für verschiedene Verbindungszustände.
+
+        Args:
+            data: Zu sendende Daten als bytes
+
+        Raises:
+            OSError: Bei verschiedenen Verbindungsfehlern je nach Zustand:
+                    - "connection does not exist" (CLOSED)
+                    - "foreign socket unspecified" (LISTEN)
+                    - "connection closing" (FIN_WAIT_*, CLOSING, etc.)
+        """
+        _log(f"Send called with data length: {len(data)}, current state: {self.tcb.state}, data: {data.hex()}",
+             LOGLEVEL_INFO)
         if self.tcb.state == TCB.STATE_CLOSED:
             _log("Cannot send: connection does not exist", LOGLEVEL_ERROR)
             raise OSError("connection does not exist")
@@ -231,24 +305,40 @@ class LoRaTCP:
 
     def read(self, bufsize=242):
         """
-        Standard TCP Socket read/recv Verhalten implementieren:
-        - Blocking: Wartet auf mindestens 1 Byte, gibt verfügbare Daten zurück
-        - Non-blocking: Gibt sofort zurück (mit Daten oder Error)
-        - Timeout: Wartet bis Timeout auf mindestens 1 Byte
+        Liest Daten aus dem Socket (Socket read/recv API-kompatibel).
+
+        Implementiert Standard-TCP Socket read/recv Verhalten mit Unterstützung
+        für blockierende, nicht-blockierende und zeitbegrenzte Modi.
+        Wartet auf mindestens 1 Byte bei blockierenden Operationen.
+
+        Args:
+            bufsize: Maximale Anzahl zu lesender Bytes (Standard: 242)
+
+        Returns:
+            bytes: Gelesene Daten oder None bei nicht-blockierendem Modus ohne Daten
+
+        Raises:
+            OSError: Bei geschlossenem Socket (Code ohne Details) oder
+                    Timeout (Code 110 - ETIMEDOUT)
+
+        Verhalten:
+        - Blockierend: Wartet auf mindestens 1 Byte, gibt verfügbare Daten zurück
+        - Nicht-blockierend: Gibt sofort None zurück wenn keine Daten verfügbar
+        - Timeout: Wartet bis Timeout auf mindestens 1 Byte, dann OSError
         """
-        #_log(f"Read called with bufsize: {bufsize}, current state: {self.tcb.state}", LOGLEVEL_DEBUG)
+        # _log(f"Read called with bufsize: {bufsize}, current state: {self.tcb.state}", LOGLEVEL_DEBUG)
 
         if self.tcb.state == TCB.STATE_CLOSED:
             _log("Cannot read: Socket is closed", LOGLEVEL_ERROR)
             raise OSError("Socket is closed")
-            
+
         if self.tcb.state in [TCB.STATE_LISTEN, TCB.STATE_SYN_SENT]:
             _log(f"Cannot read: No data available in state {TCB_STATES[self.tcb.state]}", LOGLEVEL_DEBUG)
             if not self._blocking:
                 return None
             # For blocking sockets, wait for connection establishment
 
-        #_log(f"Available data before read: {len(self.tcb.reassembled_data)} bytes", LOGLEVEL_DEBUG)
+        # _log(f"Available data before read: {len(self.tcb.reassembled_data)} bytes", LOGLEVEL_DEBUG)
 
         start_time = time.ticks_ms()
         iterations = 0
@@ -261,7 +351,7 @@ class LoRaTCP:
                 if self._timeout is not None:
                     elapsed = (time.ticks_ms() - start_time) / 1000
                     if elapsed >= self._timeout:
-                        #_log(f"Read timeout after {elapsed}s (limit: {self._timeout}s)", LOGLEVEL_WARNING)
+                        # _log(f"Read timeout after {elapsed}s (limit: {self._timeout}s)", LOGLEVEL_WARNING)
                         raise OSError(110)  # ETIMEDOUT
 
                 if iterations % 100 == 0:  # Log every 100 iterations to avoid spam
@@ -272,7 +362,7 @@ class LoRaTCP:
                 # Non-blocking: Sofortiger Return
                 _log("Non-blocking read: no data available", LOGLEVEL_DEBUG)
                 return None
-                #raise OSError(11)  # EAGAIN/EWOULDBLOCK
+                # raise OSError(11)  # EAGAIN/EWOULDBLOCK
 
         # Gib verfügbare Daten zurück (bis maximum bufsize)
         # Das ist Standard Socket Verhalten!
@@ -280,14 +370,24 @@ class LoRaTCP:
         data = self.tcb.reassembled_data[:actual_read]
         self.tcb.reassembled_data = self.tcb.reassembled_data[actual_read:]
 
-        _log(f"Read completed: requested={bufsize}, actual={actual_read}, remaining={len(self.tcb.reassembled_data)}, data: {data.hex()}",
-             LOGLEVEL_INFO)
+        _log(
+            f"Read completed: requested={bufsize}, actual={actual_read}, remaining={len(self.tcb.reassembled_data)}, data: {data.hex()}",
+            LOGLEVEL_INFO)
         return data
 
     def close(self):
         """
-        EVENT_CLOSE
-        :return:
+        Schließt die Verbindung ordnungsgemäß (EVENT_CLOSE).
+
+        Implementiert TCP-Verbindungsabbau abhängig vom aktuellen Zustand.
+        Sendet bei Bedarf FIN-Segmente und führt Zustandsübergänge durch.
+
+        Zustandsabhängiges Verhalten:
+        - CLOSED: Ignoriert stillschweigend (bereits geschlossen)
+        - LISTEN/SYN_SENT: Sofortiges Schließen ohne FIN
+        - SYN_RCVD/ESTAB: Sendet FIN und wechselt zu FIN_WAIT_1
+        - CLOSE_WAIT: Sendet FIN (Antwort auf empfangenes FIN)
+        - Andere Zustände: Bereits im Schließvorgang
         """
         _log(f"Close called, current state: {TCB_STATES[self.tcb.state]}", LOGLEVEL_INFO)
         if self.tcb.state == TCB.STATE_CLOSED:
@@ -330,12 +430,30 @@ class LoRaTCP:
             _log("connection closing", LOGLEVEL_ERROR)
 
     def add_lora_dataframe_to_queue(self, lora_dataframe: LoRaDataFrame):
+        """
+        Fügt einen empfangenen LoRa-Dataframe zur Verarbeitungsqueue hinzu.
+
+        Diese Methode wird von der LoRaDataLink aufgerufen, um
+        empfangene Datenrahmen an die entsprechende Socket-Instanz
+        weiterzuleiten. Die Rahmen werden in run() verarbeitet.
+
+        Args:
+            lora_dataframe: Der empfangene LoRa-Datenrahmen
+        """
         _log(f"Adding LoRa dataframe to queue: payload_length={len(lora_dataframe.payload)}", LOGLEVEL_DEBUG)
         self._incoming_dataframes.append(lora_dataframe)
         _log(f"Queue length after addition: {len(self._incoming_dataframes)}", LOGLEVEL_DEBUG)
 
     def _internal_close_call(self):
-        # Löscht TCB (Retransmission queue leeren) und entfernt dieses Socket aus LoRaDataLink liste
+        """
+        Führt interne Aufräumarbeiten beim Schließen durch.
+
+        Private Methode für ordnungsgemäße Ressourcenfreigabe:
+        - Löscht TCB (Transmission Control Block)
+        - Leert Retransmission Queue
+        - Entfernt Socket aus LoRaDataLink-Verwaltung
+        - Entfernt Instanz aus globaler Liste
+        """
         _log("Performing internal close call", LOGLEVEL_DEBUG)
         _log(f"Cleaning up TCB: retransmission_queue_length={len(self.tcb.retransmission_queue)}", LOGLEVEL_DEBUG)
         self.tcb.delete()
@@ -345,6 +463,9 @@ class LoRaTCP:
         _log(f"Instance removed from global list. Remaining instances: {len(LoRaTCP.INSTANCES)}", LOGLEVEL_INFO)
 
     def _check_time_wait_timer(self):
+        """
+        Überprüft den Time-Wait Timer für TCP-Verbindungsabbau.
+        """
         # If the time-wait timeout expires on a connection delete the TCB, enter the CLOSED state and return.
         if self.tcb.time_wait_timer is None:
             return
@@ -356,6 +477,10 @@ class LoRaTCP:
             self._internal_close_call()
 
     def _check_retransmission_timer(self):
+        """
+        Überprüft den Retransmission Timer für zuverlässige Übertragung.
+        """
+
         # For any state if the retransmission timeout expires on a segment in the retransmission queue,
         # send the segment at the front of the retransmission queue again,
         # reinitialize the retransmission timer,
@@ -371,7 +496,6 @@ class LoRaTCP:
                 segment = self.tcb.retransmission_queue.popleft()  # type: LoRaTCPSegment
                 self.tcb.retransmission_queue.appendleft(
                     segment)  # Peek Left TODO möglicherweise Thread safe implementieren
-
 
                 if segment.seq == self.last_retransmission_sequence_number:
                     self.retransmission_attempts += 1
@@ -389,7 +513,6 @@ class LoRaTCP:
                     self.send_segment(new_seg)
                     self.close()
 
-                # TODO vlt falsch
                 if not segment.syn_flag:
                     segment.ack = self.tcb.rcv_nxt
                     segment.ack_flag = True
@@ -400,9 +523,25 @@ class LoRaTCP:
                 self.tcb.retransmission_timeout_timer = None
 
     def run(self):
+        """
+        Hauptverarbeitungsschleife der LoRaTCP-Instanz.
+
+        Diese Methode sollte regelmäßig aufgerufen werden (Polling-basiert)
+        und verarbeitet alle anstehenden Aufgaben:
+
+        - Verarbeitung eingehender LoRa-Datenframes aus der Queue
+        - Deserialisierung und Validierung von TCP-Segmenten
+        - Ausführung der TCP-Zustandsmaschine
+        - Datenreassemblierung für die Anwendungsschicht
+        - Senden gepufferter Daten in ESTABLISHED-Zuständen
+        - Überwachung und Verarbeitung von Timern (Retransmission, Time-Wait)
+
+        Die Methode ist darauf ausgelegt, effizient ohne Blockierung zu arbeiten
+        und sollte in der Hauptschleife des Netzwerk-Threads aufgerufen werden.
+        """
         current_time = time.ticks_ms()
         time_since_last_run = time.ticks_diff(current_time, self.last_run)
-        #_log(f"Run method called, time since last run: {time_since_last_run}ms", LOGLEVEL_DEBUG)
+        # _log(f"Run method called, time since last run: {time_since_last_run}ms", LOGLEVEL_DEBUG)
 
         if time_since_last_run > 1000:
             _log("Last data handling occurred more than 1000 ms ago!", LOGLEVEL_WARNING)
@@ -418,23 +557,23 @@ class LoRaTCP:
             lora_dataframe: LoRaDataFrame = self._incoming_dataframes.pop(0)
             _log(f"Processing dataframe {processed_frames + 1}: payload_length={len(lora_dataframe.payload)}",
                  LOGLEVEL_DEBUG)
-            
+
             try:
                 # Parse TCP segment with error handling for malformed data
                 seg = LoRaTCPSegment.from_bytes(lora_dataframe.payload)  # type: LoRaTCPSegment
                 _log(
                     f"Parsed TCP segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}",
                     LOGLEVEL_DEBUG)
-                
+
                 # Validate segment basic constraints
                 if not self._validate_segment(seg):
                     _log(f"Segment validation failed, dropping segment", LOGLEVEL_WARNING)
                     processed_frames += 1
                     continue
-                    
+
                 self.handle_event_segment_arrives(seg)
                 processed_frames += 1
-                
+
             except (ValueError, IndexError) as e:
                 _log(f"Error parsing segment from dataframe: {e}, dropping segment", LOGLEVEL_ERROR)
                 processed_frames += 1
@@ -446,13 +585,6 @@ class LoRaTCP:
 
         if processed_frames > 0:
             _log(f"Processed {processed_frames} incoming dataframes", LOGLEVEL_INFO)
-
-        # Reassemble received data
-        #reassembled_before = len(self.tcb.reassembled_data)
-        #self._reassemble_received_data()
-        #reassembled_after = len(self.tcb.reassembled_data)
-        #if reassembled_after != reassembled_before:
-            #_log(f"Data reassembly: {reassembled_before} -> {reassembled_after} bytes", LOGLEVEL_DEBUG)
 
         segments_sent = 0
         if self.tcb.state in [TCB.STATE_ESTAB, TCB.STATE_CLOSE_WAIT, TCB.STATE_FIN_WAIT_1]:
@@ -481,15 +613,35 @@ class LoRaTCP:
         # Check timers
         self._check_retransmission_timer()
         self._check_time_wait_timer()
-        #_log(f"Run method completed: processed={processed_frames} frames, sent={segments_sent} segments", LOGLEVEL_DEBUG)
+        # _log(f"Run method completed: processed={processed_frames} frames, sent={segments_sent} segments", LOGLEVEL_DEBUG)
 
     def handle_event_segment_arrives(self, seg: LoRaTCPSegment):
+        """
+        Behandelt das Eintreffen eines TCP-Segments (RFC 793 State-Machine).
+
+        Implementiert die vollständige TCP-Zustandsmaschine gemäß RFC 793
+        und verarbeitet eingehende Segmente entsprechend dem aktuellen
+        Verbindungszustand. Führt alle notwendigen Validierungen,
+        Zustandsübergänge und Antworten durch.
+
+        Args:
+            seg: Das eingetroffene TCP-Segment
+
+        Verarbeitung umfasst:
+        - Zustandsspezifische Segment-Behandlung (CLOSED, LISTEN, SYN_SENT, etc.)
+        - Sequenznummer-Validierung und Fenster-Prüfung
+        - ACK-Verarbeitung und Retransmission Queue-Updates
+        - RST-Behandlung für Verbindungsreset
+        - SYN-Verarbeitung für Verbindungsaufbau
+        - FIN-Verarbeitung für Verbindungsabbau
+        - Datenextraktion und Pufferung für die Anwendung
+        """
         state = self.tcb.state
         tcb = self.tcb
         _log(
             f"Handling segment arrival: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, current_state={TCB_STATES[state]}",
             LOGLEVEL_DEBUG)
-        #_log(f"Segment flags: SYN={seg.syn_flag}, ACK={seg.ack_flag}, FIN={seg.fin_flag}, RST={seg.rst_flag}, payload_len={len(seg.payload)}", LOGLEVEL_DEBUG)
+        # _log(f"Segment flags: SYN={seg.syn_flag}, ACK={seg.ack_flag}, FIN={seg.fin_flag}, RST={seg.rst_flag}, payload_len={len(seg.payload)}", LOGLEVEL_DEBUG)
 
         # If the state is CLOSED (i.e., TCB does not exist) then
         if state == TCB.STATE_CLOSED:
@@ -735,8 +887,9 @@ class LoRaTCP:
 
                     if not acceptable and not seg.rst_flag:
                         _log("Sending ACK for unacceptable segment", LOGLEVEL_DEBUG)
-                        #new_seg = LoRaTCPSegment(seg.socket_id, seq=self.tcb.snd_nxt, rst_flag=True)
-                        new_seg = LoRaTCPSegment(seg.socket_id, seq=self.tcb.snd_nxt, ack=self.tcb.rcv_nxt, ack_flag=True)
+                        # new_seg = LoRaTCPSegment(seg.socket_id, seq=self.tcb.snd_nxt, rst_flag=True)
+                        new_seg = LoRaTCPSegment(seg.socket_id, seq=self.tcb.snd_nxt, ack=self.tcb.rcv_nxt,
+                                                 ack_flag=True)
                         self.send_segment(new_seg)
                         # After sending the acknowledgment, drop the unacceptable segment and return.
                         return
@@ -850,7 +1003,7 @@ class LoRaTCP:
                 #   of the last segment used to update SND.WND. The check here prevents using old segments to update the window.
             elif tcb.state in [TCB.STATE_FIN_WAIT_1, TCB.STATE_FIN_WAIT_2]:
                 _log(f"Processing ACK in {TCB_STATES[self.tcb.state]} state", LOGLEVEL_DEBUG)
-                
+
                 # In addition to the processing for the ESTABLISHED state,
                 # ######## ESTAB Processing #########
                 # If SND.UNA < SEG.ACK =< SND.NXT then, set SND.UNA <- SEG.ACK.
@@ -862,13 +1015,13 @@ class LoRaTCP:
                     tcb.snd_una = seg.ack
                     _log(f"Updated snd_una: {old_snd_una} -> {tcb.snd_una}", LOGLEVEL_DEBUG)
                     tcb.remove_acknowledged_segments_from_retransmission_queue()
-                    
+
                     # Check if this ACK acknowledges our FIN (only for FIN_WAIT_1)
                     if tcb.state == TCB.STATE_FIN_WAIT_1 and self.is_fin_acknowledged():
                         fin_was_acked = True
                         _log("FIN acknowledged, transitioning to FIN_WAIT_2", LOGLEVEL_INFO)
                         tcb.state = TCB.STATE_FIN_WAIT_2
-                        
+
                 # If the ACK is a duplicate (SEG.ACK < SND.UNA), it can be ignored.
                 # if seg.ack < tcb.snd_una:
 
@@ -944,7 +1097,9 @@ class LoRaTCP:
 
             # seventh, process the segment text,
             if tcb.state in [TCB.STATE_ESTAB, TCB.STATE_FIN_WAIT_1, TCB.STATE_FIN_WAIT_2] and len(seg.payload) > 0:
-                _log(f"Processing segment payload in {TCB_STATES[self.tcb.state]} state: payload_len={len(seg.payload)}", LOGLEVEL_DEBUG)
+                _log(
+                    f"Processing segment payload in {TCB_STATES[self.tcb.state]} state: payload_len={len(seg.payload)}",
+                    LOGLEVEL_DEBUG)
                 # Once in the ESTABLISHED state, it is possible to deliver segment text to user RECEIVE buffers.
                 # Text from segments can be moved into buffers until either the buffer is full or the segment is empty.
                 # If the segment empties and carries an PUSH flag, then the user is informed, when the buffer is returned,
@@ -960,9 +1115,9 @@ class LoRaTCP:
                 # and adjusts RCV.WND as apporopriate to the current buffer availability.
                 # The total of RCV.NXT and RCV.WND should not be reduced.
 
-                #new_rcv_nxt = seg.seq + len(seg.payload)
-                #_log(f"Advancing rcv_nxt from {tcb.rcv_nxt} to {new_rcv_nxt}", LOGLEVEL_DEBUG)
-                #tcb.rcv_nxt = new_rcv_nxt
+                # new_rcv_nxt = seg.seq + len(seg.payload)
+                # _log(f"Advancing rcv_nxt from {tcb.rcv_nxt} to {new_rcv_nxt}", LOGLEVEL_DEBUG)
+                # tcb.rcv_nxt = new_rcv_nxt
                 self._reassemble_received_data()
 
                 # RCV.WND entsprechend der aktuellen Pufferverfügbarkeit anpassen
@@ -987,8 +1142,9 @@ class LoRaTCP:
             elif tcb.state in [TCB.STATE_CLOSE_WAIT, TCB.STATE_CLOSING, TCB.STATE_LAST_ACK, TCB.STATE_TIME_WAIT]:
                 # This should not occur, since a FIN has been received from the remote side. Ignore the segment text.
                 if len(seg.payload) > 0:
-                    _log(f"Ignoring payload in closing state {TCB_STATES[self.tcb.state]}: payload_len={len(seg.payload)}",
-                         LOGLEVEL_WARNING)
+                    _log(
+                        f"Ignoring payload in closing state {TCB_STATES[self.tcb.state]}: payload_len={len(seg.payload)}",
+                        LOGLEVEL_WARNING)
                 pass
 
             # eighth, check the FIN bit,
@@ -997,7 +1153,8 @@ class LoRaTCP:
                 if tcb.state in [TCB.STATE_CLOSED, TCB.STATE_LISTEN, TCB.STATE_SYN_SENT]:
                     # Do not process the FIN if the state is CLOSED, LISTEN or SYN-SENT
                     # since the SEG.SEQ cannot be validated; drop the segment and return.
-                    _log(f"Ignoring FIN in state {TCB_STATES[self.tcb.state]} (cannot validate sequence)", LOGLEVEL_DEBUG)
+                    _log(f"Ignoring FIN in state {TCB_STATES[self.tcb.state]} (cannot validate sequence)",
+                         LOGLEVEL_DEBUG)
                     return
                 # If the FIN bit is set, signal the user "connection closing" and return any
                 # pending RECEIVEs with same message, advance RCV.NXT over the FIN,
@@ -1049,6 +1206,18 @@ class LoRaTCP:
             return
 
     def send_segment(self, seg: LoRaTCPSegment, is_retransmission=False):
+        """
+        Sendet ein TCP-Segment über die LoRa-Datenverbindung.
+
+        Serialisiert das TCP-Segment und übergibt es an die LoRaDataLink-Schicht.
+        Verwaltet Retransmission Queue und aktualisiert Sequenznummern bei
+        Erstübertragungen. Startet Timer für zuverlässige Übertragung.
+
+        Args:
+            seg: Das zu sendende TCP-Segment
+            is_retransmission: True wenn es sich um eine Wiederholung handelt,
+                             False für Erstübertragung (Standard)
+        """
         _log(
             f"Sending segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}, payload_len={len(seg.payload)}",
             LOGLEVEL_DEBUG)
@@ -1080,7 +1249,16 @@ class LoRaTCP:
                 _log(f"Updated SND.NXT: {old_snd_nxt} -> {self.tcb.snd_nxt}", LOGLEVEL_DEBUG)
 
     def is_fin_acknowledged(self) -> bool:
-        """Prüft ob das gesendete FIN acknowledged wurde"""
+        """
+        Prüft ob das gesendete FIN-Segment bestätigt wurde.
+
+        Überprüft anhand der Sequenznummern (snd_una vs fin_seq), ob ein
+        zuvor gesendetes FIN-Segment vom entfernten TCP bestätigt wurde. Wird für
+        korrekte Zustandsübergänge während des Verbindungsabbaus benötigt.
+
+        Returns:
+            bool: True wenn FIN bestätigt wurde, False andernfalls
+        """
         result = (self.tcb.fin_seq is not None and
                   self.tcb.snd_una > self.tcb.fin_seq)
         _log(f"FIN acknowledgment check: fin_seq={self.tcb.fin_seq}, snd_una={self.tcb.snd_una}, result={result}",
@@ -1089,10 +1267,17 @@ class LoRaTCP:
 
     def is_syn_in_window(self, seg: LoRaTCPSegment) -> bool:
         """
-        Prüft ob ein SYN-Segment im Receive Window liegt.
+        Prüft ob ein SYN-Segment im aktuellen Empfangsfenster liegt.
 
-        Ein SYN im Window während einer etablierten Verbindung
-        ist ein Fehler und führt zum Connection Reset.
+        Ein SYN-Segment im Empfangsfenster während einer etablierten
+        Verbindung ist ein Protokollfehler und führt zum Connection Reset.
+        Verwendet Sequenznummer-Arithmetik mit Wraparound-Behandlung durch Verwendung der Seq-Klasse.
+
+        Args:
+            seg: Das zu prüfende TCP-Segment
+
+        Returns:
+            bool: True wenn SYN im Fenster liegt (Fehler), False andernfalls
         """
         if not seg.syn_flag:
             return False
@@ -1109,8 +1294,23 @@ class LoRaTCP:
 
     def check_if_segment_is_in_receive_window(self, seg: LoRaTCPSegment) -> bool:
         """
-        Check if segment sequence number is acceptable according to RFC 793.
-        Uses proper sequence number arithmetic with wraparound handling.
+        Prüft ob ein Segment im akzeptablen Empfangsfenster liegt.
+
+        Überprüft ob Segmente akzeptiert werden
+        basierend auf Sequenznummer, Segmentlänge und Empfangsfenster.
+        Behandelt alle vier RFC-definierten Fälle.
+
+        Args:
+            seg: Das zu prüfende TCP-Segment
+
+        Returns:
+            bool: True wenn Segment akzeptabel ist, False andernfalls
+
+        RFC 793 Fälle:
+        - Länge 0, Fenster 0: SEG.SEQ = RCV.NXT
+        - Länge 0, Fenster >0: RCV.NXT ≤ SEG.SEQ < RCV.NXT+RCV.WND
+        - Länge >0, Fenster 0: Nie akzeptabel
+        - Länge >0, Fenster >0: Erstes oder letztes Byte im Fenster
         """
         seg_seq = Seq(seg.seq)
         seg_len = len(seg.payload)
@@ -1145,36 +1345,57 @@ class LoRaTCP:
 
     def _validate_segment(self, seg: LoRaTCPSegment) -> bool:
         """
-        Validate basic segment constraints to detect malformed segments.
-        Returns True if segment is valid, False otherwise.
+        Validiert grundlegende Segment-Eigenschaften gegen Protokollverstöße.
+
+        Überprüft empfangene Segmente auf fehlerhafte Formate
+        und ungültige Flag-Kombinationen, um fehlerhafte oder schädliche
+        Segmente frühzeitig zu erkennen und zu verwerfen.
+
+        Args:
+            seg: Das zu validierende TCP-Segment
+
+        Returns:
+            bool: True wenn Segment gültig ist, False bei Protokollverletzung
+
+        Prüfungen:
+        - Payload-Größe innerhalb der Limits
+        - Ungültige Flag-Kombinationen (SYN+FIN, RST+SYN/FIN)
+        - Grundlegende Strukturintegrität
         """
         try:
             # Check payload size constraints
             if len(seg.payload) > LoRaTCP_MAX_PAYLOAD_SIZE:
                 _log(f"Payload too large: {len(seg.payload)} > {LoRaTCP_MAX_PAYLOAD_SIZE}", LOGLEVEL_WARNING)
                 return False
-                
+
             # Check for invalid flag combinations
             if seg.syn_flag and seg.fin_flag:
                 _log("Invalid flag combination: SYN and FIN both set", LOGLEVEL_WARNING)
                 return False
-                
+
             if seg.rst_flag and (seg.syn_flag or seg.fin_flag):
-                _log("Invalid flag combination: RST with SYN or FIN", LOGLEVEL_WARNING) 
+                _log("Invalid flag combination: RST with SYN or FIN", LOGLEVEL_WARNING)
                 return False
-                
+
             return True
-            
+
         except Exception as e:
             _log(f"Exception during segment validation: {e}", LOGLEVEL_ERROR)
             return False
 
     def _reassemble_received_data(self):
         """
-        Baut zusammenhängende Segmente aus receive_buffer zu reassembled_data zusammen.
+        Setzt empfangene TCP-Segmente in korrekter Reihenfolge zusammen.
 
-        Diese Methode wird in run() aufgerufen und verarbeitet alle Segmente in der
-        korrekten Reihenfolge. Sie aktualisiert RCV.NXT nur für zusammenhängende Daten.
+        Verarbeitet alle Segmente aus dem receive_buffer und fügt zusammenhängende
+        Daten zu reassembled_data hinzu. Aktualisiert RCV.NXT nur für korrekt
+        geordnete, zusammenhängende Segmente. Thread-sicher durch Verwendung
+        von Locks.
+
+        Verhalten:
+        - Verarbeitet nur Segmente ab der erwarteten Sequenznummer (RCV.NXT)
+        - Überspringt Lücken in der Sequenz (Out-of-Order Handling)
+        - Aktualisiert Empfangsfenster entsprechend verarbeiteter Daten
         """
         if len(self.tcb.receive_buffer) == 0:
             return
@@ -1207,7 +1428,7 @@ class LoRaTCP:
                 _log(f"Advanced rcv_nxt: {old_rcv_nxt} -> {self.tcb.rcv_nxt}", LOGLEVEL_DEBUG)
                 segments_processed += 1
 
-                #_log(
+                # _log(
                 #    f"Reassembled segment: seq={expected_seq}, len={len(segment_data)}, new_rcv_nxt={self.tcb.rcv_nxt}")
 
             if segments_processed > 0:
@@ -1218,15 +1439,16 @@ class LoRaTCP:
                     f"Reassembled {segments_processed} segments, total reassembled data: {final_data_len} bytes (+{data_added})")
                 _log(f"Remaining segments in receive buffer: {len(self.tcb.receive_buffer)}", LOGLEVEL_DEBUG)
 
-    def __enter__(self):
-        _log("Entering context manager", LOGLEVEL_DEBUG)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        _log(f"Exiting context manager: exc_type={exc_type}", LOGLEVEL_DEBUG)
-        self.close()
-
     def getpeername(self):
+        """
+        Gibt die Adresse des verbundenen Peers zurück.
+
+        Kompatibel mit Standard-Socket API. Liefert IP-Adresse und Port
+        des entfernten Endpunkts der aktuellen Verbindung.
+
+        Returns:
+            tuple: (IP-Adresse, Port) des verbundenen Peers
+        """
         peer = (self.tcb.remote_ip, self.tcb.remote_port)
         _log(f"getpeername called: {peer}", LOGLEVEL_DEBUG)
         return peer
