@@ -14,7 +14,8 @@ class Queue:
         self.maxsize = maxsize
 
     def put_sync_left(self, item):
-        self.queue.appendleft(item)
+        with self.thread_lock:
+            self.queue.appendleft(item)
 
     def put_sync(self, item):
         """Schneller sync Zugriff"""
