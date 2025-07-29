@@ -46,6 +46,8 @@ _CMD_SET_TX = const(0x83)  # args: Timeout
 _CMD_SET_TX_PARAMS = const(0x8E)  # args: Power, RampTime
 _CMD_WRITE_BUFFER = const(0x0E)  # args: Offset, Data0 ... DataN
 _CMD_WRITE_REGISTER = const(0x0D)  # args: Addr, Data0 ... Data N
+_CMD_SET_CAD = const(0xC5)  # Set Channel Activity Detection
+_CMD_SET_CAD_PARAMS = const(0x88)  # Set CAD Parameters
 
 _CMD_CALIBRATE = const(0x89)
 _CMD_CALIBRATE_IMAGE = const(0x98)
@@ -89,6 +91,7 @@ _REG_EVT_CLR_MASK = const(0x02)
 
 # IRQs the driver cares about when receiving
 _IRQ_DRIVER_RX_MASK = const(_IRQ_RX_DONE | _IRQ_TIMEOUT | _IRQ_CRC_ERR | _IRQ_HEADER_ERR)
+_IRQ_DRIVER_CAD_MASK = const(_IRQ_CAD_DONE | _IRQ_CAD_DETECTED | _IRQ_TIMEOUT)
 
 
 # Except when entering/waking from sleep, typical busy period <105us (ref RM0453 Table 33)
@@ -114,6 +117,7 @@ class _SX126x(BaseModem):
     # common IRQ masks used by the base class functions
     _IRQ_RX_COMPLETE = _IRQ_RX_DONE | _IRQ_TIMEOUT
     _IRQ_TX_COMPLETE = _IRQ_TX_DONE
+    _IRQ_DRIVER_CAD_MASK = const(_IRQ_CAD_DONE | _IRQ_CAD_DETECTED | _IRQ_TIMEOUT)
 
     # Common base class for SX1261, SX1262 and (pending) STM32WL55. These are all basically
     # the same except for which PA ranges are supported
@@ -140,6 +144,7 @@ class _SX126x(BaseModem):
         self._busy = busy
         self._sleep = True  # assume the radio is in sleep mode to start, will wake on _cmd
         self._dio1 = dio1
+        self._cad = False
 
         if hasattr(busy, "init"):
             busy.init(Pin.IN)
@@ -233,10 +238,9 @@ class _SX126x(BaseModem):
             self._cmd(
                 ">BHHHH",
                 _CMD_CFG_DIO_IRQ,
-                (_IRQ_RX_DONE | _IRQ_TX_DONE | _IRQ_TIMEOUT),  # IRQ mask
-                (_IRQ_RX_DONE | _IRQ_TX_DONE | _IRQ_TIMEOUT),  # DIO1 mask
-                0x0,  # DIO2Mask, not used
-                0x0,  # DIO3Mask, not used
+                (_IRQ_RX_DONE | _IRQ_TX_DONE | _IRQ_TIMEOUT | _IRQ_CAD_DONE | _IRQ_CAD_DETECTED),
+                (_IRQ_RX_DONE | _IRQ_TX_DONE | _IRQ_TIMEOUT | _IRQ_CAD_DONE | _IRQ_CAD_DETECTED),
+                0x0, 0x0
             )
             dio1.irq(self._radio_isr, Pin.IRQ_RISING)
 
@@ -505,6 +509,118 @@ class _SX126x(BaseModem):
         # takes or exactly how it signals completion. Assuming it will be
         # similar to _CMD_CALIBRATE.
         self._wait_not_busy(_CALIBRATE_TIMEOUT_US)
+
+    def configure_cad(self, cad_symbol_num=1, cad_detect_peak=22, cad_detect_min=10, cad_exit_mode=0, cad_timeout=0):
+        """
+        Konfiguriere Channel Activity Detection Parameter
+
+        Args:
+            cad_symbol_num: Anzahl Symbole für CAD (1-4)
+            cad_detect_peak: Peak Detection Schwelle (0-255)
+            cad_detect_min: Minimum Detection Schwelle (0-255)
+            cad_exit_mode: 0=Standby after CAD, 1=Rx after CAD detected
+            cad_timeout: Timeout in ms für CAD operation
+        """
+        if not (1 <= cad_symbol_num <= 4):
+            raise ConfigError("cad_symbol_num must be 1-4")
+
+        # CAD Parameter setzen
+        self._cmd("BBBBB", _CMD_SET_CAD_PARAMS,
+                  cad_symbol_num,
+                  cad_detect_peak,
+                  cad_detect_min,
+                  cad_exit_mode)
+
+    def start_cad(self, timeout_ms=None):
+        """
+        Starte Channel Activity Detection
+
+        Args:
+            timeout_ms: Optional timeout in milliseconds
+
+        Returns:
+            Pin object if DIO1 configured, None otherwise
+        """
+        if self._rx or self._tx:
+            raise RuntimeError("Cannot start CAD while RX or TX active")
+
+        # Modem in Standby versetzen
+        self._standby()
+
+        # CAD-Zustand setzen
+        if timeout_ms is not None:
+            self._cad = time.ticks_add(time.ticks_ms(), timeout_ms)
+        else:
+            self._cad = True
+
+        # Antenne für RX konfigurieren
+        if self._ant_sw:
+            self._ant_sw.rx()
+
+        # IRQs löschen
+        self._clear_irq()
+
+        # CAD starten
+        self._cmd("B", _CMD_SET_CAD)
+
+        return self._dio1
+
+    def poll_cad(self):
+        """
+        Überprüfe CAD-Status
+
+        Returns:
+            - True: CAD läuft noch
+            - False: CAD nicht aktiv
+            - 'detected': Channel Activity erkannt
+            - 'clear': Kein Channel Activity erkannt
+            - 'timeout': CAD Timeout aufgetreten
+        """
+        if not self._cad:
+            return False
+
+        # Timeout-Check
+        if isinstance(self._cad, int):
+            if time.ticks_diff(self._cad, time.ticks_ms()) <= 0:
+                self._end_cad()
+                return 'timeout'
+
+        # IRQ-Flags prüfen
+        flags = self._get_irq()
+
+        if flags & self._IRQ_CAD_COMPLETE:
+            self._clear_irq(flags)
+            result = self._process_cad_result(flags)
+            self._end_cad()
+            return result
+
+        return True  # CAD läuft noch
+
+    def _process_cad_result(self, flags):
+        """Verarbeite CAD-Ergebnis basierend auf IRQ-Flags"""
+        if flags & _IRQ_TIMEOUT:
+            return 'timeout'
+        elif flags & _IRQ_CAD_DETECTED:
+            return 'detected'
+        elif flags & _IRQ_CAD_DONE:
+            return 'clear'
+        else:
+            # Unerwarteter Zustand
+            return 'error'
+
+    def _end_cad(self):
+        """CAD beenden und Zustand zurücksetzen"""
+        self._cad = False
+        if self._ant_sw:
+            self._ant_sw.idle()
+        # Modem in Standby
+        self.standby()
+
+    def is_idle(self):
+        """Erweitere is_idle() um CAD-Zustand"""
+        if self._cad:
+            return False
+        return super().is_idle()
 
     def start_recv(self, timeout_ms=None, continuous=False, rx_length=0xFF):
         # Start receiving.

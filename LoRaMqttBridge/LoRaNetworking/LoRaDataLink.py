@@ -213,19 +213,21 @@ class LoRaDataLink(Singleton):
                 _log("Could not import LightSleepManager. Using time.sleep_ms", LOGLEVEL_WARNING)
                 time.sleep_ms(remaining_cycle_time)
 
-        lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
-        if lora_dataframe is not None:
-            try:
-                start = time.ticks_ms()
-                self._driver.send(lora_dataframe.to_bytes())
-                time_on_air = time.ticks_diff(time.ticks_ms(), start)
-                self._transmit_time += time_on_air
-                _log(f'Sent packet: {lora_dataframe}')
-            except Exception as e:
-                _log(f"{e}", LOGLEVEL_ERROR)
-                self._transmitQueue.put_sync_left(lora_dataframe)
-                if "BUSY timeout" in str(e):
-                    self._handle_busy_error()
+        result = self._driver.cad(timeout_ms=200)
+        if result == 'clear':
+            lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
+            if lora_dataframe is not None:
+                try:
+                    start = time.ticks_ms()
+                    self._driver.send(lora_dataframe.to_bytes())
+                    time_on_air = time.ticks_diff(time.ticks_ms(), start)
+                    self._transmit_time += time_on_air
+                    _log(f'Sent packet: {lora_dataframe}')
+                except Exception as e:
+                    _log(f"{e}", LOGLEVEL_ERROR)
+                    self._transmitQueue.put_sync_left(lora_dataframe)
+                    if "BUSY timeout" in str(e):
+                        self._handle_busy_error()
             
     def _handle_rx_packet(self, rx_packet):
         try:
