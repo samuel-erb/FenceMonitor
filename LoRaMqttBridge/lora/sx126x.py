@@ -545,7 +545,11 @@ class _SX126x(BaseModem):
         else:
             timeout = 0  # Single receive mode, no timeout
 
-        self._cmd(">BBH", _CMD_SET_RX, timeout >> 16, timeout)  # 24 bits
+        t2 = (timeout >> 16) & 0xFF
+        t1 = (timeout >> 8) & 0xFF
+        t0 = timeout & 0xFF
+
+        self._cmd(">BBBB", _CMD_SET_RX, t2, t1, t0)
 
         return self._dio1
 
