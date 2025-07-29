@@ -6,6 +6,7 @@ from config.lora_config import configure_modem, diagnose_lora
 from LoRaNetworking.Queue import Queue
 from Singleton import Singleton
 from lora import RxPacket, SX1262
+from LoRaNetworking.Aloha import Aloha
 
 # Logging Konstanten
 LOGLEVEL_DEBUG = const(0)
@@ -220,11 +221,11 @@ class LoRaDataLink(Singleton):
                 self._driver.standby()
                 result = self._driver.cad(timeout_ms=CAD_TIMEOUT)
                 if result != 'clear':
-                    _log(f"CAD result not clear: {result}")
+                    _log(f"CAD result not clear: {result}", LOGLEVEL_INFO)
                     self._transmitQueue.put_sync_left(lora_dataframe)
                     return
 
-                _log("CAD result clear. Starting to send...")
+                _log("CAD result clear. Starting to send...", LOGLEVEL_INFO)
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)

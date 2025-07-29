@@ -46,7 +46,7 @@ class TCB:
     STATE_LAST_ACK = 9
     STATE_TIME_WAIT = 10
 
-    RETRANSMISSION_TIMEOUT_MS = 1_500
+    RETRANSMISSION_TIMEOUT_MS = 5_500
     TIME_WAIT_TIMEOUT_MS = 30_000  # 30 seconds TIME_WAIT timeout
 
     __slots__ = ('remote_ip', 'remote_port', 'socket_id', 'active_open', 'time_wait_timer', 'user_timeout_timer',
@@ -164,7 +164,7 @@ class TCB:
         self.time_wait_timer = time.ticks_ms()
 
     def start_retransmission_timeout_timer(self):
-        self.retransmission_timeout_timer = time.ticks_ms()
+        self.retransmission_timeout_timer = time.ticks_ms() + random.randint(0, 20) * 100
 
     def cancel_all_timers(self):
         self.retransmission_timeout_timer = None
