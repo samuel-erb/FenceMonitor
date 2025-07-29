@@ -19,6 +19,8 @@ LORA_DATALINK_MODE_SENSOR = const(0)
 LORA_DATALINK_MODE_GATEWAY = const(1)
 LORA_DATALINK_MODE = LORA_DATALINK_MODE_SENSOR
 
+CAD_TIMEOUT = const(600)
+
 # Konstanten für Längen
 # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
 DATAFRAME_HEADER_LENGTH = const(7)
@@ -214,13 +216,14 @@ class LoRaDataLink(Singleton):
 
         lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
         if lora_dataframe is not None:
-            self._driver.standby()
-            result = self._driver.cad(timeout_ms=200)
-            if result != 'clear':
-                _log(f"CAD result not clear: {result}")
-                self._transmitQueue.put_sync_left(lora_dataframe)
-                return
             try:
+                self._driver.standby()
+                result = self._driver.cad(timeout_ms=CAD_TIMEOUT)
+                if result != 'clear':
+                    _log(f"CAD result not clear: {result}")
+                    self._transmitQueue.put_sync_left(lora_dataframe)
+                    return
+
                 _log("CAD result clear. Starting to send...")
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())

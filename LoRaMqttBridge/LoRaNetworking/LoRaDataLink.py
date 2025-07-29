@@ -19,6 +19,8 @@ LORA_DATALINK_MODE_SENSOR = const(0)
 LORA_DATALINK_MODE_GATEWAY = const(1)
 LORA_DATALINK_MODE = LORA_DATALINK_MODE_GATEWAY
 
+CAD_TIMEOUT = const(200)
+
 # Konstanten für Längen
 # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
 DATAFRAME_HEADER_LENGTH = const(7)
@@ -214,13 +216,14 @@ class LoRaDataLink(Singleton):
 
         lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
         if lora_dataframe is not None:
-            self._driver.standby()
-            result = self._driver.cad(timeout_ms=200)
-            if result != 'clear':
-                _log(f"CAD result not clear: {result}")
-                self._transmitQueue.put_sync_left(lora_dataframe)
-                return
             try:
+                self._driver.standby()
+                result = self._driver.cad(timeout_ms=CAD_TIMEOUT)
+                if result != 'clear':
+                    _log(f"CAD result not clear: {result}")
+                    self._transmitQueue.put_sync_left(lora_dataframe)
+                    return
+
                 _log("CAD result clear. Starting to send...")
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
@@ -234,7 +237,7 @@ class LoRaDataLink(Singleton):
                 if "BUSY timeout" in str(e):
                     self._handle_busy_error()
 
-            
+
     def _handle_rx_packet(self, rx_packet):
         try:
             lora_dataframe = LoRaDataFrame.from_bytes(rx_packet)
@@ -282,7 +285,7 @@ class LoRaDataLink(Singleton):
             _log(f'Received ValueError: {e}', LOGLEVEL_WARNING)
         except Exception as e:
             _log(f'{e}', LOGLEVEL_WARNING)
-            
+
     def _get_remaining_duty_cycle_time_reset_timer_if_necessary(self) -> int:
         # Duty cycle Überprüfung (1% duty cycle = 36 Sekunden/Stunde)
         current_time = time.ticks_ms()

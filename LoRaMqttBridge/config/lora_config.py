@@ -153,7 +153,9 @@ def configure_modem() -> SX1262:
     return modem
 
 def diagnose_lora(lora_modem: SX1262):
-    """Führt eine Diagnose des SX1262 LoRa-Modems durch"""
+    """
+    Führt eine Diagnose des SX1262 LoRa-Modems durch
+    """
     # SX1262 Register
     REG_LSYNCRH = 0x740
     REG_LSYNCRL = 0x741
