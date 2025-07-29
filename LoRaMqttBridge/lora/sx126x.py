@@ -280,6 +280,8 @@ class _SX126x(BaseModem):
         # Note this function can return True in the case where the modem has temporarily gone to
         # standby but there's a receive configured in software that will resume receiving the next
         # time poll_recv() or poll_send() is called.
+        if self._cad:
+            return False
         if self._sleep:
             return True  # getting status wakes from sleep
         mode, _ = self._get_status()
@@ -615,12 +617,6 @@ class _SX126x(BaseModem):
             self._ant_sw.idle()
         # Modem in Standby
         self.standby()
-
-    def is_idle(self):
-        """Erweitere is_idle() um CAD-Zustand"""
-        if self._cad:
-            return False
-        return super().is_idle()
 
     def start_recv(self, timeout_ms=None, continuous=False, rx_length=0xFF):
         # Start receiving.
