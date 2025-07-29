@@ -184,7 +184,7 @@ class LoRaDataLink(Singleton):
         # Weil wir im Konstruktor start_recv(continous=True) aufrufen, empfängt das Modem noch
         # auch wenn zwischendurch gesendet wird
         self._rx = self._driver.poll_recv(rx_packet=self._rx_packet)
-        
+
         if isinstance(self._rx, RxPacket) and len(self._rx) >= DATAFRAME_HEADER_LENGTH:
             self._handle_rx_packet(self._rx)
             self._rx = True
@@ -214,6 +214,7 @@ class LoRaDataLink(Singleton):
 
         lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
         if lora_dataframe is not None:
+            self._driver.standby()
             result = self._driver.cad(timeout_ms=200)
             if result != 'clear':
                 _log(f"CAD result not clear: {result}")
@@ -225,6 +226,7 @@ class LoRaDataLink(Singleton):
                 self._driver.send(lora_dataframe.to_bytes())
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)
                 self._transmit_time += time_on_air
+                self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
                 _log(f'Sent packet: {lora_dataframe}')
             except Exception as e:
                 _log(f"{e}", LOGLEVEL_ERROR)
