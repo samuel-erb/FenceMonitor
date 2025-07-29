@@ -216,9 +216,11 @@ class LoRaDataLink(Singleton):
         if lora_dataframe is not None:
             result = self._driver.cad(timeout_ms=200)
             if result != 'clear':
+                _log(f"CAD result not clear: {result}")
                 self._transmitQueue.put_sync_left(lora_dataframe)
                 return
             try:
+                _log("CAD result clear. Starting to send...")
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)
