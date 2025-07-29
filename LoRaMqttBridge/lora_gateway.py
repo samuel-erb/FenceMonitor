@@ -190,10 +190,6 @@ class ConnectionBridge(Thread):
         
         logger.info("All connection bridges stopped")
 
-
-
-
-
 class LoRaGateway:
     """
     LoRa Gateway that manages incoming LoRa connections and bridges them to TCP brokers
@@ -202,18 +198,16 @@ class LoRaGateway:
     def __init__(self, shutdown_event: threading.Event):
         self.lora_networking = LoRaNetworking()
         self.shutdown_event = shutdown_event
-        self.running = False
         logger.info("LoRaGateway initialized")
 
     def run(self):
         """Main gateway loop - waits for LoRa connections and creates bridges"""
         logger.info("LoRaGateway starting up")
-        self.running = True
         last_status_output = time.ticks_ms()
         connection_count = 0
         
         try:
-            while not self.shutdown_event.is_set() and self.running:
+            while not self.shutdown_event.is_set():
                 try:
                     # Status logging
                     current_time = time.ticks_ms()
@@ -275,14 +269,12 @@ class LoRaGateway:
             logger.error(f"Fatal error in LoRaGateway: {e}")
             logger.debug(traceback.format_exc())
         finally:
-            self.running = False
             self.stop()
             logger.info("LoRaGateway exited")
 
     def stop(self):
         """Gracefully stop the gateway and all connections"""
         logger.info("Stopping LoRaGateway...")
-        self.running = False
         
         try:
             # Stop all connection bridges
@@ -292,6 +284,26 @@ class LoRaGateway:
             logger.info("Stopping LoRa networking...")
             if hasattr(self, 'lora_networking') and self.lora_networking:
                 self.lora_networking.stop()
+                
+                # Wait for the networking thread to finish
+                # Give reasonable time for cleanup since _thread is used in LoRaNetworking
+                import time
+                time.sleep(1.0)
+                logger.info("LoRa networking stopped")
+            
+            # Force close all LoRaTCP instances by setting TCB states to CLOSED
+            from LoRaNetworking.LoRaTCP import LoRaTCP
+            from LoRaNetworking.TCB import TCB
+            logger.info(f"Force closing {len(LoRaTCP.INSTANCES)} remaining LoRaTCP instances")
+            instances_copy = LoRaTCP.INSTANCES.copy()
+            for tcp_instance in instances_copy:
+                try:
+                    # Force TCB state to CLOSED to break listen() loops
+                    tcp_instance.tcb.state = TCB.STATE_CLOSED
+                    tcp_instance.close()
+                    logger.debug(f"Force closed LoRaTCP instance: {tcp_instance}")
+                except Exception as e:
+                    logger.warning(f"Error force closing LoRaTCP instance: {e}")
                 
             logger.info("LoRaGateway stopped successfully")
             

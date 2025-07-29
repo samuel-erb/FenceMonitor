@@ -1,4 +1,5 @@
 import random
+import time
 
 
 class VoltageMeasurement:
@@ -11,6 +12,8 @@ class VoltageMeasurement:
     }
 
     def get_voltage(self):
+        print(f"[VoltageMeasurement] Starting mock measurement voltage. Sleeping for 5 seconds...")
+        time.sleep(5)
         voltage = random.randint(0, 4)
         print(f"[VoltageMeasurement] Mock measurement voltage: {voltage} -> {VoltageMeasurement.VOLTAGE_MAP[voltage]}")
         return VoltageMeasurement.VOLTAGE_MAP[voltage]

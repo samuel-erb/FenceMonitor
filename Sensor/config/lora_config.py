@@ -160,45 +160,75 @@ def configure_modem() -> SX1262:
         lora_cfg=lora_cfg
     )
 
-
-import math
-
-
-def calculate_lora_airtime_ms(pl: int = 50):
+def diagnose_lora(lora_modem: SX1262):
     """
-    Berechnet die minimale Empfangswartezeit (Airtime) in Millisekunden.
-
-    Parameter:
-    - sf: Spreading Factor (6 bis 12)
-    - bw_khz: Bandbreite in kHz (z. B. 125)
-    - cr: Coding Rate (1=4/5 bis 4=4/8)
-    - pl: Payload-Länge in Byte
-    - crc_en: True/False für CRC aktiv
-    - implicit_header: True/False für Header-Modus
-    - preamble_len: Länge des Preambels (z. B. 8)
-
-    Rückgabewert:
-    - Airtime in Millisekunden (float)
+    Führt eine Diagnose des SX1262 LoRa-Modems durch
     """
+    # SX1262 Register
+    REG_LSYNCRH = 0x740
+    REG_LSYNCRL = 0x741
+    REG_RX_GAIN = 0x08AC
+    print("\n=== SX1262 LoRa Modem Diagnose ===")
 
-    bw = BW * 1000  # in Hz
-    t_sym = (2 ** SF) / bw  # Sekunden pro Symbol
-    de = 1 if t_sym > 0.016 else 0  # Low Data Rate Optimization
-    ih = 1 if IMPLICIT_HEADER else 0
-    crc = 1 if CRC_EN else 0
+    # Status abfragen
+    try:
+        status = lora_modem._get_status()
+        mode, cmd_status = status
+        print(f"Status Mode: {mode} (2=STDBY_RC, 3=STDBY_HSE32, 5=RX, 6=TX)")
+        print(f"Command Status: {cmd_status}")
+    except Exception as e:
+        print(f"Fehler beim Status-Abruf: {e}")
 
-    # Anzahl Payload-Symbole
-    payload_symb_nb = 8 + max(
-        math.ceil(
-            (8 * pl - 4 * SF + 28 + 16 * crc - 20 * ih) /
-            (4 * (SF - 2 * de))
-        ) * (CODING_RATE + 4),
-        0
-    )
+    # Fehler abfragen
+    try:
+        error_status = lora_modem._check_error()
+        print(f"Error Status: {error_status} (Keine Fehler wenn kein Fehler geworfen wurde)")
+    except Exception as e:
+        print(f"Aktuelle Fehler: {e}")
 
-    # Gesamtzeit berechnen
-    t_preamble = (PREAMBLE_LEN + 4.25) * t_sym
-    t_payload = payload_symb_nb * t_sym
-    t_total_s = t_preamble + t_payload
+    # Frequenz (aus gespeichertem Wert)
+    freq_mhz = lora_modem._rf_freq_hz / 1_000_000
+    print(f"Konfigurierte Frequenz: {freq_mhz:.3f} MHz")
 
-    return int(round(t_total_s * 1000)/3)  # in Millisekunden
+    # Spreading Factor
+    print(f"Spreading Factor: {lora_modem._sf}")
+
+    # Bandwidth
+    print(f"Bandwidth: {lora_modem._bw} kHz")
+
+    # Coding Rate
+    print(f"Coding Rate: 4/{lora_modem._coding_rate}")
+
+    # Preamble
+    print(f"Preamble Länge: {lora_modem._preamble_len}")
+
+    # Output Power
+    print(f"Output Power: {lora_modem._output_power} dBm")
+
+    # CRC
+    print(f"CRC: {'Aktiviert' if lora_modem._crc_en else 'Deaktiviert'}")
+
+    # Implicit Header
+    print(f"Header Mode: {'Implicit' if lora_modem._implicit_header else 'Explicit'}")
+
+    # IQ Einstellungen
+    print(f"IQ RX Invert: {lora_modem._invert_iq[0]}")
+    print(f"IQ TX Invert: {lora_modem._invert_iq[1]}")
+
+    # Sync Word Register lesen
+    try:
+        sync_h = lora_modem._reg_read(REG_LSYNCRH)
+        sync_l = lora_modem._reg_read(REG_LSYNCRL)
+        syncword = (sync_h << 8) | sync_l
+        print(f"Sync Word: 0x{syncword:04X}")
+    except Exception as e:
+        print(f"Fehler beim Sync Word Lesen: {e}")
+
+    # RX Gain Register
+    try:
+        rx_gain = lora_modem._reg_read(REG_RX_GAIN)
+        print(f"RX Gain: 0x{rx_gain:02X} ({'Boost' if rx_gain == 0x96 else 'Normal'})")
+    except Exception as e:
+        print(f"Fehler beim RX Gain Lesen: {e}")
+
+    print("=== Diagnose abgeschlossen ===\n")

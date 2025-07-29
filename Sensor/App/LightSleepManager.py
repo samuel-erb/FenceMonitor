@@ -15,13 +15,19 @@ class LightSleepManager:
     def _check_if_we_can_go_to_bed(self):
         return self.lora_networking.is_sleep_ready()
 
-    async def sleep(self):
-        print("[LightSleepManager] Checking if we can go to bed...")
-        while not self._check_if_we_can_go_to_bed():
-            await asyncio.sleep_ms(100)
-        print("[LightSleepManager] Going to bed... 💤")
-        self.lora_networking.prepare_for_sleep()
-        time.sleep(10)
-        machine.lightsleep(self.sleep_duration_ms)
+    async def sleep(self, time_ms: int = -1, force=False):
+        sleep_ms = self.sleep_duration_ms if time_ms == -1 else time_ms
+        if force:
+            print("[LightSleepManager] Going to bed... 💤")
+            time.sleep(10)
+            machine.lightsleep(sleep_ms)
+        else:
+            print("[LightSleepManager] Checking if we can go to bed...")
+            while not self._check_if_we_can_go_to_bed():
+                await asyncio.sleep_ms(100)
+            print("[LightSleepManager] Going to bed... 💤")
+            self.lora_networking.prepare_for_sleep()
+            time.sleep(10)
+            machine.lightsleep(sleep_ms)
         print("[LightSleepManager] Woke up... 🥱")
         self.lora_networking.send_woke_up_msg()

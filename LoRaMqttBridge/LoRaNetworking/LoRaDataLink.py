@@ -20,8 +20,10 @@ LORA_DATALINK_MODE_GATEWAY = const(1)
 LORA_DATALINK_MODE = LORA_DATALINK_MODE_GATEWAY
 
 # Konstanten für Längen
-DataFrameHeaderLength = const(7)  # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
-DataFrameMaxPayloadLength = const(249)  # 256 - DataFrameHeaderLength -> 249 Maximale Länge des Payloads im LoRa-Frame
+# 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
+DATAFRAME_HEADER_LENGTH = const(7)
+# 256 - DATAFRAME_HEADER_LENGTH -> 249 Maximale Länge des Payloads im LoRa-Frame
+DATAFRAME_MAX_PAYLOAD_LENGTH = const(249)
 
 # DataFrame Typen
 DATAFRAME_TYPE = {
@@ -87,7 +89,7 @@ class LoRaDataFrame:
     Ein Frame besteht aus:
     - 6 Byte Adresse
     - 1 Byte Typ-Header
-    - Payload (max. so, dass Frame <= 255 Byte)
+    - Payload (max. so, dass Frame <= 256 Byte)
     """
 
     def __init__(self, address: bytes, data_type: int, payload: bytes):
@@ -95,7 +97,7 @@ class LoRaDataFrame:
             raise ValueError("address must be 6 bytes")
         if data_type not in DATAFRAME_TYPE:
             raise ValueError("invalid data_type")
-        if len(payload) > DataFrameMaxPayloadLength:
+        if len(payload) > DATAFRAME_MAX_PAYLOAD_LENGTH:
             raise ValueError("payload too large for frame")
         self.address = address
         self.data_type = data_type
@@ -113,7 +115,7 @@ class LoRaDataFrame:
         """
         Wandelt empfangene Rohbytes in ein LoRaDataFrame-Objekt um.
         """
-        if len(data) < 7:
+        if len(data) < DATAFRAME_HEADER_LENGTH:
             raise ValueError("Frame too short")
         address = data[:6]
         data_type_value = data[6]
@@ -165,7 +167,7 @@ class LoRaDataLink(Singleton):
             raise Exception("You can't register a listening socket on a Sensor!")
         self.listening_sockets.append(socket)
 
-    def register_syn_rcvd_socket(self, socket: "LoRaTCP"):
+    def register_syn_sent_socket(self, socket: "LoRaTCP"):
         if socket in self.listening_sockets:
             self.listening_sockets.remove(socket)
         if SensorState.get_by_socket_id(socket.tcb.socket_id) is None:
@@ -204,7 +206,7 @@ class LoRaDataLink(Singleton):
                 finally:
                     self._transmission_block = False
 
-        if isinstance(rx_packet, RxPacket) and len(rx_packet) >= DataFrameHeaderLength:
+        if isinstance(rx_packet, RxPacket) and len(rx_packet) >= DATAFRAME_HEADER_LENGTH:
             try:
                 lora_dataframe = LoRaDataFrame.from_bytes(rx_packet)
                 _log(f'Received dataframe: {lora_dataframe}')
@@ -212,27 +214,30 @@ class LoRaDataLink(Singleton):
                 # oder wenn wir die Basisstation sind, werden alle Dataframes akzeptiert
                 if self.mode == LORA_DATALINK_MODE_GATEWAY or self.sensor_address == lora_dataframe.address:
                     if lora_dataframe.data_type == LoRaTCP_Segment:
-                        # Weil wir keine Ports benutzen müsen wir die Socket-ID auslesen und den Dataframe dem richtigen Socket zuordnen
+                        # Weil wir keine Ports benutzen müsen wir die Socket-ID auslesen und
+                        # den Dataframe dem richtigen Socket zuordnen
                         socket_id = int.from_bytes(lora_dataframe.payload[0:6], 'big')
                         socket = None
                         for sock in self.sockets:  # type: LoRaTCP
                             if sock.tcb.socket_id == socket_id:
                                 socket = sock
 
-                        # wenn wir kein Socket mit der Socket-ID haben, schauen wir, ob wir ein Socket im LISTEN state haben
+                        # wenn wir kein Socket mit der Socket-ID haben, schauen wir,
+                        # ob wir ein Socket im LISTEN state haben
                         if socket is None and len(self.listening_sockets) > 0:
                             socket = self.listening_sockets[0]  # type: LoRaTCP
 
                         if socket is None:
                             raise Exception(
-                                f"Received a LoRaTCP_Segment with socket-id {socket_id}, but we dont have any open sockets nor listening sockets: {lora_dataframe}")
+                                f"Received a LoRaTCP_Segment with socket-id {socket_id}, but we dont have any open "
+                                f"sockets nor listening sockets: {lora_dataframe}")
 
                         if self.mode == LORA_DATALINK_MODE_GATEWAY:
                             state = SensorState.get_state_by_address(lora_dataframe.address)
                             if state is None:
                                 state = SensorState(lora_dataframe.address)
                             if socket_id not in state.socket_ids:
-                                state.socket_ids.append(socket_id)
+                                state.socket_ids.append(socket_id) # Wird für die Zuordnung beim Senden benötigt
                             _log(f"Updated last communication time for sensor {state.sensor_address}")
                             state.last_communication = time.ticks_ms()
 
@@ -258,17 +263,19 @@ class LoRaDataLink(Singleton):
         # Wenn innerhalb der aktuellen Periode und die Übertragungszeit überschreitet 36 Sekunden
         if cycle_elapsed < 3_600_000 and self._transmit_time > 36_000:  # Within 1 hour and exceeded 36 seconds
             # Berechne die verbleibende Zeit bis zum Ende der Periode
-            remaining_cycle_time = 3_600_000 - cycle_elapsed  # (Eine Stunde in Millisekunden) - (der Duty Cycle Periode)
+            remaining_cycle_time = 3_600_000 - cycle_elapsed # (Eine Stunde in Millisekunden) - (der Duty Cycle Periode)
 
             if self.mode == LORA_DATALINK_MODE_GATEWAY:
                 if not self._duty_cycle_message_displayed:
                     _log(
-                        f'Reached duty cycle budget of 36 seconds / hour. We will only receive messages for the next {remaining_cycle_time} ms...',
+                        f'Reached duty cycle budget of 36 seconds / hour. '
+                        f'We will only receive messages for the next {remaining_cycle_time} ms...',
                         LOGLEVEL_INFO)
                     self._duty_cycle_message_displayed = True
                 return  # Überspringe das Senden aber empfange weiterhin
             else:  # Sensoren gehen in den Schlafmodus
-                _log(f'Reached duty cycle budget of 36 seconds / hour. Waiting for {remaining_cycle_time} ms...',
+                _log(f'Reached duty cycle budget of 36 seconds / hour. '
+                     f'Waiting for {remaining_cycle_time} ms...',
                      LOGLEVEL_INFO)
                 try:
                     import App.LightSleepManager

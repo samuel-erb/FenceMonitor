@@ -30,7 +30,6 @@ def _log(message: str, loglevel=LOGLEVEL_DEBUG):
         print(f"[TCB] \033[31mError: {message}\033[0m")
 
 class TCB:
-    # TODO __slots__
     INSTANCES = list()
     SOCKET_ID_COUNTER = 0
 

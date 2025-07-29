@@ -143,6 +143,77 @@ def configure_modem() -> SX1262:
             lora_cfg=lora_cfg
         )
 
+def diagnose_lora(lora_modem: SX1262):
+    """Führt eine Diagnose des SX1262 LoRa-Modems durch"""
+    # SX1262 Register
+    REG_LSYNCRH = 0x740
+    REG_LSYNCRL = 0x741
+    REG_RX_GAIN = 0x08AC
+    print("\n=== SX1262 LoRa Modem Diagnose ===")
+
+    # Status abfragen
+    try:
+        status = lora_modem._get_status()
+        mode, cmd_status = status
+        print(f"Status Mode: {mode} (2=STDBY_RC, 3=STDBY_HSE32, 5=RX, 6=TX)")
+        print(f"Command Status: {cmd_status}")
+    except Exception as e:
+        print(f"Fehler beim Status-Abruf: {e}")
+
+    # Fehler abfragen
+    try:
+        error_status = lora_modem._check_error()
+        print(f"Error Status: {error_status} (Keine Fehler wenn kein Fehler geworfen wurde)")
+    except Exception as e:
+        print(f"Aktuelle Fehler: {e}")
+
+    # Frequenz (aus gespeichertem Wert)
+    freq_mhz = lora_modem._rf_freq_hz / 1_000_000
+    print(f"Konfigurierte Frequenz: {freq_mhz:.3f} MHz")
+
+    # Spreading Factor
+    print(f"Spreading Factor: {lora_modem._sf}")
+
+    # Bandwidth
+    print(f"Bandwidth: {lora_modem._bw} kHz")
+
+    # Coding Rate
+    print(f"Coding Rate: 4/{lora_modem._coding_rate}")
+
+    # Preamble
+    print(f"Preamble Länge: {lora_modem._preamble_len}")
+
+    # Output Power
+    print(f"Output Power: {lora_modem._output_power} dBm")
+
+    # CRC
+    print(f"CRC: {'Aktiviert' if lora_modem._crc_en else 'Deaktiviert'}")
+
+    # Implicit Header
+    print(f"Header Mode: {'Implicit' if lora_modem._implicit_header else 'Explicit'}")
+
+    # IQ Einstellungen
+    print(f"IQ RX Invert: {lora_modem._invert_iq[0]}")
+    print(f"IQ TX Invert: {lora_modem._invert_iq[1]}")
+
+    # Sync Word Register lesen
+    try:
+        sync_h = lora_modem._reg_read(REG_LSYNCRH)
+        sync_l = lora_modem._reg_read(REG_LSYNCRL)
+        syncword = (sync_h << 8) | sync_l
+        print(f"Sync Word: 0x{syncword:04X}")
+    except Exception as e:
+        print(f"Fehler beim Sync Word Lesen: {e}")
+
+    # RX Gain Register
+    try:
+        rx_gain = lora_modem._reg_read(REG_RX_GAIN)
+        print(f"RX Gain: 0x{rx_gain:02X} ({'Boost' if rx_gain == 0x96 else 'Normal'})")
+    except Exception as e:
+        print(f"Fehler beim RX Gain Lesen: {e}")
+
+    print("=== Diagnose abgeschlossen ===\n")
+
 
 import math
 
