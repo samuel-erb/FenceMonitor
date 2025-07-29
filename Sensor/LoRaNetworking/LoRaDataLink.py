@@ -338,7 +338,7 @@ class LoRaDataLink(Singleton):
                 # Sensor ist inaktiv - Frame zurück in die Warteschlange für späteren Versuch
                 self._transmitQueue.put_sync(frame)
                 sensor_hex = sensor_address.hex() if sensor_address else "unknown"
-                _log(f"Keeping frame for inactive sensor {sensor_hex} in queue", LOGLEVEL_DEBUG)
+                #_log(f"Keeping frame for inactive sensor {sensor_hex} in queue", LOGLEVEL_DEBUG)
 
         return active_frame
 
