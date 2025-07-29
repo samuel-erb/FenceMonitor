@@ -161,7 +161,7 @@ class LoRaDataLink(Singleton):
         self._duty_cycle_message_displayed = False
         self._transmission_block = False  # Einfaches Lock um die Kommunikation zu pausieren
         self._busy_timeout_retries = 0  # Zähler für Busy-Timeout Fehler
-        self._will_irq = self._driver.start_recv(continuous=True)
+        self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
         self._rx = True
         self._rx_packet = None
 
@@ -339,7 +339,7 @@ class LoRaDataLink(Singleton):
             # Versuche, das Modem in einen bekannten Zustand zu bringen
             self._driver.standby()
             time.sleep_ms(500)
-            self._will_irq = self._driver.start_recv(continuous=True)
+            self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
             if (self._busy_timeout_retries == 10 and self.mode == LORA_DATALINK_MODE_SENSOR):
                 machine.reset()
             _log("Recovery successful")
