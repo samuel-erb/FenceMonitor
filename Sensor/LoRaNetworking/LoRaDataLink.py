@@ -161,7 +161,7 @@ class LoRaDataLink(Singleton):
         self._duty_cycle_message_displayed = False
         self._transmission_block = False  # Einfaches Lock um die Kommunikation zu pausieren
         self._busy_timeout_retries = 0  # Zähler für Busy-Timeout Fehler
-        self._will_irq = self._driver.start_recv(continuous=True)
+        self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
         self._rx = True
         self._rx_packet = None
 
@@ -201,11 +201,10 @@ class LoRaDataLink(Singleton):
                 self._duty_cycle_message_displayed = True
             return  # Überspringe das Senden aber empfange weiterhin
         # Sensoren gehen in den Schlafmodus
-        elif self._transmit_time > 36_000:  # Kein Gateway und mehr als 36 Sekunden in der letzten Stunde gesendet
+        elif self._transmit_time > 36_000: # Kein Gateway und mehr als 36 Sekunden in der letzten Stunde gesendet
             _log(f'Reached duty cycle budget of 36 seconds / hour. '
                  f'Waiting for {remaining_cycle_time} ms...',
                  LOGLEVEL_INFO)
-            return remaining_cycle_time
             try:
                 import App.LightSleepManager
                 LightSleepManager().sleep(remaining_cycle_time, force=True)
@@ -215,17 +214,26 @@ class LoRaDataLink(Singleton):
 
         lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
         if lora_dataframe is not None:
+            self._driver.standby()
+            result = self._driver.cad(timeout_ms=200)
+            if result != 'clear':
+                _log(f"CAD result not clear: {result}")
+                self._transmitQueue.put_sync_left(lora_dataframe)
+                return
             try:
+                _log("CAD result clear. Starting to send...")
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)
                 self._transmit_time += time_on_air
+                self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
                 _log(f'Sent packet: {lora_dataframe}')
             except Exception as e:
                 _log(f"{e}", LOGLEVEL_ERROR)
                 self._transmitQueue.put_sync_left(lora_dataframe)
                 if "BUSY timeout" in str(e):
                     self._handle_busy_error()
+
 
     def _handle_rx_packet(self, rx_packet):
         try:
@@ -279,7 +287,7 @@ class LoRaDataLink(Singleton):
         # Duty cycle Überprüfung (1% duty cycle = 36 Sekunden/Stunde)
         current_time = time.ticks_ms()
         cycle_elapsed = time.ticks_diff(current_time, self._duty_cycle_timer)
-        if cycle_elapsed >= 3_600_000:  # 60 * 60 * 1000: Eine Stunde ist vergangen, starte neue Periode
+        if cycle_elapsed >= 3_600_000: # 60 * 60 * 1000: Eine Stunde ist vergangen, starte neue Periode
             self._duty_cycle_timer = current_time
             self._transmit_time = 0
             self._duty_cycle_message_displayed = False
@@ -339,7 +347,7 @@ class LoRaDataLink(Singleton):
             # Versuche, das Modem in einen bekannten Zustand zu bringen
             self._driver.standby()
             time.sleep_ms(500)
-            self._will_irq = self._driver.start_recv(continuous=True)
+            self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
             if (self._busy_timeout_retries == 10 and self.mode == LORA_DATALINK_MODE_SENSOR):
                 machine.reset()
             _log("Recovery successful")

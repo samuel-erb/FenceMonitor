@@ -382,6 +382,8 @@ class BaseModem:
                     self._radio_isr, None
                 )  # "soft irq" to unblock anything waiting on the interrupt event
                 return False
+        if self._rx_continuous:
+            timeout_ms = None
 
         if _DEBUG:
             print(

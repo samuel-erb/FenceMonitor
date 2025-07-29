@@ -150,7 +150,7 @@ def configure_modem() -> SX1262:
         miso=LoRa_MISO
     )
     
-    return SX1262(
+    modem = SX1262(
         spi=spi,
         cs=LoRa_NSS,
         busy=LoRa_BUSY,
@@ -159,6 +159,15 @@ def configure_modem() -> SX1262:
         dio3_tcxo_millivolts=3300,
         lora_cfg=lora_cfg
     )
+
+    modem.configure_cad(
+        cad_symbol_num=2,    # 2 Symbole für Detection
+        cad_detect_peak=22,  # Peak-Schwelle
+        cad_detect_min=10,   # Min-Schwelle
+        cad_exit_mode=1      # Nach CAD zu Receive
+    )
+
+    return modem
 
 def diagnose_lora(lora_modem: SX1262):
     """

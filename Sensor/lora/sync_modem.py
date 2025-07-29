@@ -66,6 +66,25 @@ class SyncModem:
             rx = self.poll_recv(rx_packet)
         return rx or None
 
+    def cad(self, timeout_ms=1000):
+        """
+        Synchrone Channel Activity Detection
+
+        Args:
+            timeout_ms: Timeout für CAD in milliseconds
+
+        Returns:
+            'detected', 'clear', oder 'timeout'
+        """
+        will_irq = self.start_cad(timeout_ms)
+
+        cad_result = True
+        while cad_result is True:
+            self._sync_wait(will_irq)
+            cad_result = self.poll_cad()
+
+        return cad_result
+
     def _sync_wait(self, will_irq):
         # For synchronous usage, block until an interrupt occurs or we time out
         if will_irq:
