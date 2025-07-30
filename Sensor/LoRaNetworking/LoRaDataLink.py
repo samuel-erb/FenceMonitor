@@ -6,7 +6,6 @@ from config.lora_config import configure_modem, diagnose_lora
 from LoRaNetworking.Queue import Queue
 from Singleton import Singleton
 from lora import RxPacket, SX1262
-from LoRaNetworking.Aloha import Aloha
 
 # Logging Konstanten
 LOGLEVEL_DEBUG = const(0)

@@ -60,7 +60,7 @@ class TCB:
     def __init__(self, remote_ip, remote_port):
         self.remote_ip = remote_ip
         self.remote_port = remote_port
-        self.socket_id = TCB.SOCKET_ID_COUNTER
+        self.socket_id = random.randint(0, 255) # TCB.SOCKET_ID_COUNTER
         TCB.SOCKET_ID_COUNTER += 1
         self.active_open = True
 
@@ -127,6 +127,7 @@ class TCB:
             seg for seg in self.retransmission_queue
             if seg not in segments_to_remove
         ], 20)
+
         if len(segments_to_remove) > 0:
             del segments_to_remove
             _log(f"Removed acknowledged segments up to {self.snd_una} for socket {self.socket_id}")
@@ -164,7 +165,7 @@ class TCB:
         self.time_wait_timer = time.ticks_ms()
 
     def start_retransmission_timeout_timer(self):
-        self.retransmission_timeout_timer = time.ticks_ms() + random.randint(0, 20) * 100
+        self.retransmission_timeout_timer = time.ticks_ms() - random.randint(0, 5) * 1000
 
     def cancel_all_timers(self):
         self.retransmission_timeout_timer = None

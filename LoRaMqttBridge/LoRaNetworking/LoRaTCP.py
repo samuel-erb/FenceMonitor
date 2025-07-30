@@ -19,7 +19,7 @@ LOGLEVEL_INFO = const(1)
 LOGLEVEL_WARNING = const(2)
 LOGLEVEL_ERROR = const(3)
 
-TCP_LOG_LEVEL = const(LOGLEVEL_DEBUG)
+TCP_LOG_LEVEL = const(LOGLEVEL_INFO)
 
 TCB_STATES = {
     0: "STATE_CLOSED",
@@ -569,7 +569,7 @@ class LoRaTCP:
                 seg = LoRaTCPSegment.from_bytes(lora_dataframe.payload)  # type: LoRaTCPSegment
                 _log(
                     f"Parsed TCP segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}",
-                    LOGLEVEL_DEBUG)
+                    LOGLEVEL_INFO)
 
                 # Validate segment basic constraints
                 if not self._validate_segment(seg):
@@ -590,7 +590,7 @@ class LoRaTCP:
                 continue
 
         if processed_frames > 0:
-            _log(f"Processed {processed_frames} incoming dataframes", LOGLEVEL_INFO)
+            _log(f"Processed {processed_frames} incoming dataframes", LOGLEVEL_DEBUG)
 
         segments_sent = 0
         if self.tcb.state in [TCB.STATE_ESTAB, TCB.STATE_CLOSE_WAIT, TCB.STATE_FIN_WAIT_1]:
@@ -1226,7 +1226,7 @@ class LoRaTCP:
         """
         _log(
             f"Sending segment: socket_id={seg.socket_id}, seq={seg.seq}, ack={seg.ack}, flags=SYN:{seg.syn_flag},ACK:{seg.ack_flag},FIN:{seg.fin_flag},RST:{seg.rst_flag}, payload_len={len(seg.payload)}",
-            LOGLEVEL_DEBUG)
+            LOGLEVEL_INFO)
 
         segment_bytes = seg.to_bytes()
         _log(f"Segment serialized to {len(segment_bytes)} bytes", LOGLEVEL_DEBUG)
