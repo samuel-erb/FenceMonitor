@@ -1,4 +1,6 @@
 import gc
+import struct
+
 from micropython import const
 import machine
 import time
@@ -19,7 +21,7 @@ LORA_DATALINK_MODE_SENSOR = const(0)
 LORA_DATALINK_MODE_GATEWAY = const(1)
 LORA_DATALINK_MODE = LORA_DATALINK_MODE_SENSOR
 
-CAD_TIMEOUT = const(600)
+CAD_TIMEOUT = const(200)
 
 # Konstanten für Längen
 # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
@@ -85,7 +87,7 @@ class SensorState:
 
 
 class LoRaDataFrame:
-    __slots__ = ("address", "data_type", "payload", "sockets", "listening_sockets")
+    __slots__ = ("address", "data_type", "payload")
     """
     Kapselt die Nutzdaten eines Protokollframes für die Übertragung via LoRa.
     Ein Frame besteht aus:
@@ -99,7 +101,7 @@ class LoRaDataFrame:
             raise ValueError("address must be 6 bytes")
         if data_type not in DATAFRAME_TYPE:
             raise ValueError("invalid data_type")
-        if len(payload) > DATAFRAME_MAX_PAYLOAD_LENGTH:
+        if len(payload) > (DATAFRAME_MAX_PAYLOAD_LENGTH):
             raise ValueError("payload too large for frame")
         self.address = address
         self.data_type = data_type
@@ -108,22 +110,21 @@ class LoRaDataFrame:
     def to_bytes(self) -> bytes:
         """
         Serialisiert den Frame für die Übertragung via LoRa.
-        Fügt Address, Data-Type-Byte und Payload zusammen.
         """
-        return self.address + bytes([self.data_type]) + self.payload
+        header = struct.pack(self._STRUCT_FORMAT, self.address, self.data_type)
+        return header + self.payload
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "LoRaDataFrame":
         """
-        Wandelt empfangene Rohbytes in ein LoRaDataFrame-Objekt um.
+        Deserialisiert empfangene Bytes in ein LoRaDataFrame-Objekt.
         """
-        if len(data) < DATAFRAME_HEADER_LENGTH:
+        if len(data) < cls._HEADER_SIZE:
             raise ValueError("Frame too short")
-        address = data[:6]
-        data_type_value = data[6]
+        address, data_type_value = struct.unpack(cls._STRUCT_FORMAT, data[:cls._HEADER_SIZE])
         if data_type_value not in DATAFRAME_TYPE:
-            raise ValueError("Unknown data type: {}".format(data_type_value))
-        payload = data[7:]
+            raise ValueError(f"Unknown data type: {data_type_value}")
+        payload = data[cls._HEADER_SIZE:]
         return cls(address, data_type_value, payload)
 
     def __repr__(self):
@@ -163,9 +164,9 @@ class LoRaDataLink(Singleton):
         self._duty_cycle_message_displayed = False
         self._transmission_block = False  # Einfaches Lock um die Kommunikation zu pausieren
         self._busy_timeout_retries = 0  # Zähler für Busy-Timeout Fehler
-        self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
+        self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None) # Starte kontinuierlichen Empfang
         self._rx = True
-        self._rx_packet = None
+        self._rx_packet = None # Spart zusätzliche Speicher-Allokation für zukünftige Dataframes
 
     def register_listening_socket(self, socket: "LoRaTCP"):
         if self.mode == LORA_DATALINK_MODE_SENSOR:
@@ -185,45 +186,37 @@ class LoRaDataLink(Singleton):
             return
         # Weil wir im Konstruktor start_recv(continous=True) aufrufen, empfängt das Modem noch
         # auch wenn zwischendurch gesendet wird
-        self._rx = self._driver.poll_recv(rx_packet=self._rx_packet)
-
+        self._rx = self._driver.poll_recv(rx_packet=self._rx_packet) # Prüfe ob Nachricht set letztem Aufruf empfangen wurde
         if isinstance(self._rx, RxPacket) and len(self._rx) >= DATAFRAME_HEADER_LENGTH:
             self._handle_rx_packet(self._rx)
             self._rx = True
-
+        # Holt die verbleibende Zeit der aktuellen Duty Cycle Periode in Millisekunden
+        # bzw. setzt die Zeit sowie die Übertragungszeit zurück, wenn eine Stunde vergangen ist
         remaining_cycle_time = self._get_remaining_duty_cycle_time_reset_timer_if_necessary()
-        # Gateways gehen nicht in den Schlafmodus aber dürfen nicht mehr senden.
-        # Mehr als 36 Sekunden in der letzten Stunde gesendet
-        if self.mode == LORA_DATALINK_MODE_GATEWAY and self._transmit_time > 36_000:
+        if self.mode == LORA_DATALINK_MODE_GATEWAY and self._transmit_time > 36_000: # Gateways gehen nicht in den Schlafmodus aber dürfen nicht mehr senden.
             if not self._duty_cycle_message_displayed:
-                _log(
-                    f'Reached duty cycle budget of 36 seconds / hour. '
-                    f'We will only receive messages for the next {remaining_cycle_time} ms...',
-                    LOGLEVEL_INFO)
+                _log(f'Reached duty cycle budget of 36 seconds per hour. Stop sending messages for the next {remaining_cycle_time} ms...', LOGLEVEL_INFO)
                 self._duty_cycle_message_displayed = True
             return  # Überspringe das Senden aber empfange weiterhin
         # Sensoren gehen in den Schlafmodus
-        elif self._transmit_time > 36_000: # Kein Gateway und mehr als 36 Sekunden in der letzten Stunde gesendet
-            _log(f'Reached duty cycle budget of 36 seconds / hour. '
-                 f'Waiting for {remaining_cycle_time} ms...',
-                 LOGLEVEL_INFO)
+        elif self._transmit_time > 36_000: # Gerät is Sensor und hat mehr als 36 Sekunden in der letzten Stunde gesendet
+            _log(f'Reached duty cycle budget of 36 seconds per hour. Sleeping for {remaining_cycle_time} ms...', LOGLEVEL_INFO)
             try:
                 import App.LightSleepManager
                 LightSleepManager().sleep(remaining_cycle_time, force=True)
             except Exception:
                 _log("Could not import LightSleepManager. Using time.sleep_ms", LOGLEVEL_WARNING)
                 time.sleep_ms(remaining_cycle_time)
-
         lora_dataframe: LoRaDataFrame = self._find_dataframe_for_active_sensor()
         if lora_dataframe is not None:
             try:
-                self._driver.standby()
-                result = self._driver.cad(timeout_ms=CAD_TIMEOUT)
-                if result != 'clear':
+                self._driver.standby() # Beende kontinuierliches Empfangen
+                result = self._driver.cad(timeout_ms=CAD_TIMEOUT) # Führe Channel Activity Detection durch
+                if result != 'clear': # Starte sofort den kontinuierlichen Empfang und lese Paket im nächsten Durchlauf aus
+                    self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
                     _log(f"CAD result not clear: {result}", LOGLEVEL_INFO)
                     self._transmitQueue.put_sync_left(lora_dataframe)
                     return
-
                 _log("CAD result clear. Starting to send...", LOGLEVEL_INFO)
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())

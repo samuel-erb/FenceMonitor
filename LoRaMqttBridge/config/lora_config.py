@@ -147,7 +147,8 @@ def configure_modem() -> SX1262:
         cad_symbol_num=2,    # 2 Symbole für Detection
         cad_detect_peak=22,  # Peak-Schwelle
         cad_detect_min=10,   # Min-Schwelle
-        cad_exit_mode=1      # Nach CAD zu Receive
+        cad_exit_mode=1,     # Nach CAD zu Receive
+        cad_timeout=128      # cad_timeout × 15.625 µs
     )
     
     return modem

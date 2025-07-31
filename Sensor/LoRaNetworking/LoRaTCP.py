@@ -14,8 +14,8 @@ import gc
 from micropython import const
 import time
 
-# DATAFRAME_MAX_PAYLOAD_LENGTH - Header(2 + 2 + 2 + 1) -> 242: Socket_ID, Flags, Seq_Number, ACK_Number
-LoRaTCP_MAX_PAYLOAD_SIZE = const(242)
+# DATAFRAME_MAX_PAYLOAD_LENGTH - Header(1 + 2 + 2 + 1) -> 242: Socket_ID, Flags, Seq_Number, ACK_Number
+LoRaTCP_MAX_PAYLOAD_SIZE = const(243)
 
 LOGLEVEL_DEBUG = const(0)
 LOGLEVEL_INFO = const(1)

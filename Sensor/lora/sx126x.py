@@ -527,11 +527,12 @@ class _SX126x(BaseModem):
             raise ConfigError("cad_symbol_num must be 1-4")
 
         # CAD Parameter setzen
-        self._cmd("BBBBB", _CMD_SET_CAD_PARAMS,
+        self._cmd("BBBBBH", _CMD_SET_CAD_PARAMS,
                   cad_symbol_num,
                   cad_detect_peak,
                   cad_detect_min,
-                  cad_exit_mode)
+                  cad_exit_mode,
+                  cad_timeout)
 
     def start_cad(self, timeout_ms=None):
         """

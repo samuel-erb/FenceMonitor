@@ -1,3 +1,5 @@
+import struct
+
 from micropython import const
 
 # 2^16 -> 65536, da wir 16-Bit-Sequenznummern verwenden (Wrap-around bei 65536)
@@ -83,18 +85,23 @@ class Seq(int):
 
 class LoRaTCPSegment:
     """
-    +----------------+----------------+----------------+----------------+
-    | Socket-ID[0-3] | Socket-ID[4-5] | Flags[6]       | Seq[7]         |
-    +----------------+----------------+----------------+----------------+
-    | Seq[0]         | Ack[1]         | Payload ...                     |
-    +----------------+---------------------------------+----------------+
-    | Payload (weiter)                                                  |
-    +-------------------------------------------------------------------+
+    +------------+------------+------------+------------+------------+------------+
+    | Socket-ID  |  Flags     |     Seq (2 Byte)       |     Ack (2 Byte)         |
+    +------------+------------+------------+------------+------------+------------+
+    |                             Payload (beliebig lang)                         |
+    +-----------------------------------------------------------------------------+
     """
+
+    # Struct-Format: B (1 Byte Socket-ID), B (1 Byte Flags), H (2 Byte Seq), H (2 Byte Ack)
+    _STRUCT_FORMAT = ">BBHH"
+    _HEADER_SIZE = struct.calcsize(_STRUCT_FORMAT)
+
     __slots__ = ('socket_id', 'syn_flag', 'ack_flag', 'fin_flag', 'rst_flag', 'seq', 'ack', 'payload')
 
     def __init__(self, socket_id: int, seq: Seq, ack: Seq = Seq(0x0), syn_flag: bool = False, ack_flag: bool = True,
                  fin_flag: bool = False, rst_flag: bool = False, payload: bytes = b''):
+        if not (0 <= socket_id <= 255):
+            raise ValueError("Socket-ID must be between 0 and 255")
         self.socket_id = socket_id
         self.syn_flag = syn_flag
         self.ack_flag = ack_flag
@@ -102,51 +109,40 @@ class LoRaTCPSegment:
         self.rst_flag = rst_flag
         self.seq = 0 if seq is None else Seq(seq)  # type: Seq
         self.ack = 0 if ack is None else Seq(ack)  # type: Seq
+        if len(payload) > 243:
+            raise ValueError("Payload must be less than 244 bytes")
         self.payload = payload
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "LoRaTCPSegment":
-        if len(data) < 11:
+        if len(data) < cls._HEADER_SIZE:
             raise ValueError("Segment too short")
 
-        # Header auspacken
-        socket_id_bytes = data[0:6]
-        flags_byte = data[6]
-        seq_bytes = data[7:9]
-        ack_bytes = data[9:11]
+        # Unpack Header (1B socket_id, 1B flags, 2B seq, 2B ack)
+        socket_id, flags_byte, seq, ack = struct.unpack(">BBHH", data[:6])
 
-        # socket_id: 6 bytes zu int
-        socket_id = int.from_bytes(socket_id_bytes, 'big')
-
-        # Flags
+        # Extract flags
         syn_flag = bool(flags_byte & 0b0001)
         ack_flag = bool(flags_byte & 0b0010)
         fin_flag = bool(flags_byte & 0b0100)
         rst_flag = bool(flags_byte & 0b1000)
 
-        # Seq + Ack
-        seq = Seq(int.from_bytes(seq_bytes, 'big'))
-        ack = Seq(int.from_bytes(ack_bytes, 'big'))
+        # Payload
+        payload = data[6:]
 
-        # Rest ist Payload
-        payload = data[11:]
-
-        return cls(socket_id, syn_flag=syn_flag, ack_flag=ack_flag, fin_flag=fin_flag, rst_flag=rst_flag, seq=seq,
-                   ack=ack, payload=payload)
+        return cls(socket_id, seq=Seq(seq), ack=Seq(ack),
+                   syn_flag=syn_flag, ack_flag=ack_flag,
+                   fin_flag=fin_flag, rst_flag=rst_flag,
+                   payload=payload)
 
     def to_bytes(self) -> bytes:
-        # socket_id wieder in 6 bytes
-        socket_id_bytes = self.socket_id.to_bytes(6, 'big')
-
         # Flags zusammenbauen
         flags = (self.syn_flag << 0) | (self.ack_flag << 1) | (self.fin_flag << 2) | (self.rst_flag << 3)
 
-        # Seq & Ack
-        seq_bytes = b'\x00\x00' if self.seq is None else self.seq.to_bytes(2, 'big')
-        ack_bytes = b'\x00\x00' if self.ack is None else self.ack.to_bytes(2, 'big')
+        # Pack Header
+        header = struct.pack(">BBHH", self.socket_id, flags, int(self.seq), int(self.ack))
 
-        # Zusammenbauen
-        return socket_id_bytes + bytes([flags]) + seq_bytes + ack_bytes + self.payload
+        return header + self.payload
 
     def __repr__(self):
         flags = []
