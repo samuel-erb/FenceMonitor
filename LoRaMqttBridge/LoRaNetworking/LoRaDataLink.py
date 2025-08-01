@@ -364,7 +364,7 @@ class LoRaDataLink(Singleton):
         Die ersten 6 Bytes werden als Socket-ID im Big-Endian Format interpretiert.
         """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
-            socket_id = int.from_bytes(data[0:6], 'big')
+            socket_id = data[0]
             state = SensorState.get_by_socket_id(socket_id)
             if state is None:
                 raise RuntimeError(

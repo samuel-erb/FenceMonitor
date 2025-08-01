@@ -96,6 +96,10 @@ class LoRaDataFrame:
     - Payload (max. so, dass Frame <= 256 Byte)
     """
 
+    # Struct-Format: 6s (6 Byte Adresse), B (1 Byte data_type)
+    _STRUCT_FORMAT = ">6sB"
+    _HEADER_SIZE = struct.calcsize(_STRUCT_FORMAT)
+
     def __init__(self, address: bytes, data_type: int, payload: bytes):
         if len(address) != 6:
             raise ValueError("address must be 6 bytes")
@@ -360,7 +364,7 @@ class LoRaDataLink(Singleton):
         Die ersten 6 Bytes werden als Socket-ID im Big-Endian Format interpretiert.
         """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
-            socket_id = int.from_bytes(data[0:6], 'big')
+            socket_id = data[0]
             state = SensorState.get_by_socket_id(socket_id)
             if state is None:
                 raise RuntimeError(
