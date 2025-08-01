@@ -25,7 +25,16 @@ class LoRaNetworking(Singleton):
     def stop(self):
         print("[LoRaNetworking] Gracefully stopping networking thread")
         for tcp in LoRaTCP.INSTANCES:  # type: LoRaTCP
-            tcp.stop()
+            tcp.close()
         time.sleep(10)
         self.running = False
+
+    def is_sleep_ready(self) -> bool:
+        return self.data_link.is_sleep_ready()
+
+    def send_woke_up_msg(self):
+        self.data_link.woke_up()
+
+    def prepare_for_sleep(self):
+        self.data_link.prepare_for_sleep()
 
