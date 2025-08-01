@@ -245,7 +245,7 @@ class LoRaDataLink(Singleton):
                 if lora_dataframe.data_type == LoRaTCP_Segment:
                     # Weil wir keine Ports benutzen müsen wir die Socket-ID auslesen und
                     # den Dataframe dem richtigen Socket zuordnen
-                    socket_id = int.from_bytes(lora_dataframe.payload[0:6], 'big')
+                    socket_id = lora_dataframe.payload[0]
                     socket = None
                     for sock in self.sockets:  # type: LoRaTCP
                         if sock.tcb.socket_id == socket_id:
@@ -361,7 +361,7 @@ class LoRaDataLink(Singleton):
     def add_to_send_queue(self, data: bytes):
         """
         Methode zum Hinzufügen von Daten zum Übertragungspuffer.
-        Die ersten 6 Bytes werden als Socket-ID im Big-Endian Format interpretiert.
+        Das erste Byte wird als Socket-ID interpretiert.
         """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
             socket_id = data[0]
