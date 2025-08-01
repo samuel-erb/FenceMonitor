@@ -498,7 +498,7 @@ class LoRaTCP:
             return
 
         elapsed = time.ticks_diff(time.ticks_ms(), self.tcb.retransmission_timeout_timer)
-        if elapsed > TCB.RETRANSMISSION_TIMEOUT_MS:
+        if elapsed + 100 > TCB.RETRANSMISSION_TIMEOUT_MS:
             _log(f"Retransmission timer expired after {elapsed}ms (timeout: {TCB.RETRANSMISSION_TIMEOUT_MS}ms)",
                  LOGLEVEL_WARNING)
             if len(self.tcb.retransmission_queue) > 0:
