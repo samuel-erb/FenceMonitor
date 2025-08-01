@@ -11,7 +11,7 @@ async def check_msg(mqtt_client: LoRaMQTTClient):
             mqtt_client.check_msg()
         except OSError as e:
             machine.reset()
-        await asyncio.sleep(10)
+        await asyncio.sleep(1)
 
 async def collect_garbage():
     while True:

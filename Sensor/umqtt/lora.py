@@ -17,7 +17,7 @@ class LoRaMQTTClient(MQTTClient):
         )
 
     def connect(self, clean_session=True, timeout=60):  # Standard-Timeout auf 60 Sekunden gesetzt
-        # Anstatt einen TCP-Socket zu erstellen, erstellen wir einen LoRaSocket
+        # Anstatt einen TCP-Socket zu erstellen, erstellen wir ein LoRaTCP-Socket
         self.sock = LoRaTCP()
         self.sock.settimeout(timeout)
 
@@ -25,7 +25,7 @@ class LoRaMQTTClient(MQTTClient):
         self.sock.connect((self.server, self.port))
 
         # Der Rest ist gleich wie in der ursprünglichen MQTTClient.connect-Methode
-        # Ab hier wird das MQTT-Protokoll über den LoRaSocket abgewickelt
+        # Ab hier wird das MQTT-Protokoll über den LoRaTCP-Socket abgewickelt
         premsg = bytearray(b"\x10\0\0\0\0\0")
         msg = bytearray(b"\x04MQTT\x04\x02\0\0")
 
@@ -42,8 +42,7 @@ class LoRaMQTTClient(MQTTClient):
             sz += 2 + len(self.lw_topic) + 2 + len(self.lw_msg)
             msg[6] |= 0x4 | (self.lw_qos & 0x1) << 3 | (self.lw_qos & 0x2) << 3
             msg[6] |= self.lw_retain << 5
-        # FIX: Wir senden ein Byte weniger über LoRaTCP
-        #sz = sz - 1
+
         i = 1
         while sz > 0x7F:
             premsg[i] = (sz & 0x7F) | 0x80
@@ -61,18 +60,8 @@ class LoRaMQTTClient(MQTTClient):
         if self.user:
             self._send_str(self.user)
             self._send_str(self.pswd)
-        try:
-            resp = self.sock.read(4)
-            if not resp:
-                raise MQTTException("Keine Antwort vom Server erhalten")
-            if len(resp) < 4:
-                raise MQTTException(f"Unvollständige Antwort erhalten: {resp.hex()}")
-
-            # Jetzt können wir sicher auf die Indizes zugreifen
-            assert resp[0] == 0x20 and resp[1] == 0x02, f"Unerwartetes Antwortformat: {resp.hex()}"
-            if resp[3] != 0:
-                raise MQTTException(resp[3])
-            return resp[2] & 1
-        except OSError as e:
-            self.sock.close()
-            raise MQTTException(f"Socket-Fehler: {e}")
+        resp = self.sock.read(4)
+        assert resp[0] == 0x20 and resp[1] == 0x02
+        if resp[3] != 0:
+            raise MQTTException(resp[3])
+        return resp[2] & 1
