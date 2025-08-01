@@ -3,9 +3,9 @@ import sys
 import threading
 
 from LoRaNetworking.LoRaNetworking import LoRaNetworking
+from LoRaNetworking.TCB import TCB
+from LoRaNetworking.LoRaTCP import LoRaTCP
 from lora_gateway import LoRaGateway
-
-
 
 
 def main():
@@ -18,6 +18,9 @@ def main():
         shutdown_event.set()
         LoRaNetworking().stop()
         gateway.stop()
+        for tcp in LoRaTCP.INSTANCES: # type: LoRaTCP
+            if tcp.state == TCB.STATE_LISTEN:
+                tcp.tcb.state = TCB.STATE_CLOSED # Beendet den blockierenden listen-Aufruf in Gateway
 
     handled_signals = [
         signal.SIGTERM,

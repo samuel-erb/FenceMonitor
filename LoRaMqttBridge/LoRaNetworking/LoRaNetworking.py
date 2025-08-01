@@ -1,6 +1,8 @@
 import _thread
 import threading
 
+import time
+
 from .LoRaDataLink import LoRaDataLink
 from .LoRaTCP import LoRaTCP
 from Singleton import Singleton
@@ -21,5 +23,9 @@ class LoRaNetworking(Singleton):
         print("[LoRaNetworking] Networking thread stopped")
 
     def stop(self):
+        print("[LoRaNetworking] Gracefully stopping networking thread")
+        for tcp in LoRaTCP.INSTANCES:  # type: LoRaTCP
+            tcp.stop()
+        time.sleep(10)
         self.running = False
 

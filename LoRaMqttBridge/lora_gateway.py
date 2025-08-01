@@ -24,7 +24,6 @@ class ConnectionBridge(Thread):
     
     def __init__(self, lora_socket: LoRaTCP, peer):
         super().__init__(name=f"ConnectionBridge-{peer}")
-        self.daemon = True  # Daemon thread for proper shutdown
         
         try:
             logger.info(f"Creating new connection bridge for peer: {peer}")
@@ -33,7 +32,6 @@ class ConnectionBridge(Thread):
             self.lora_sock = lora_socket
             self.sock: Optional[socket.socket] = None
             self.shutdown_event = threading.Event()
-            self.is_running = False
             
             # Configure LoRa socket
             self.lora_sock.setblocking(False)
@@ -58,51 +56,44 @@ class ConnectionBridge(Thread):
 
     def run(self):
         """Main bridge loop handling bidirectional data transfer"""
-        self.is_running = True
         logger.info(f"Starting connection bridge for {self.peer}")
-        
         try:
-            while not self.shutdown_event.is_set() and self.is_running:
+            while not self.shutdown_event.is_set():
                 connection_alive = True
-                
                 # Handle TCP socket -> LoRa socket direction
                 try:
-                    if self.sock:
-                        data = self.sock.recv(4096)
-                        if len(data) > 0:
-                            logger.debug(f"Received {len(data)} bytes from TCP broker: {self.peer}")
-                            bytes_written = self.lora_sock.write(data, len(data))
-                            logger.debug(f"Forwarded {bytes_written} bytes to LoRa")
-                        elif len(data) == 0:
-                            logger.info(f"TCP connection closed by broker: {self.peer}")
-                            connection_alive = False
-                            
+                    data = self.sock.recv(4096)  # Wirft timeout exception, wenn keine Daten empfangen wurden
+                    if len(data) > 0:
+                        logger.debug(f"Received {len(data)} bytes from remote TCP: {self.peer}")
+                        bytes_written = self.lora_sock.write(data, len(data))
+                        logger.debug(f"Forwarded {bytes_written} bytes to LoRa")
+                    elif len(data) == 0:
+                        logger.info(f"TCP connection closed by remote TCP: {self.peer}")
+                        connection_alive = False
                 except socket.timeout:
                     pass  # Normal timeout, continue
                 except SocketError as e:
                     if e.errno == errno.ECONNRESET:
-                        logger.warning(f"TCP connection reset by broker: {self.peer}")
+                        logger.warning(f"TCP connection reset by remote TCP: {self.peer}")
                         connection_alive = False
                     elif e.errno == errno.ECONNABORTED:
-                        logger.warning(f"TCP connection aborted by broker: {self.peer}")
+                        logger.warning(f"TCP connection aborted by remote TCP: {self.peer}")
                         connection_alive = False
                     else:
-                        logger.error(f"TCP socket error from broker {self.peer}: {e}")
+                        logger.error(f"TCP socket error from remote TCP {self.peer}: {e}")
                         connection_alive = False
                 except Exception as e:
                     logger.error(f"Unexpected error reading from TCP socket {self.peer}: {e}")
                     logger.debug(traceback.format_exc())
                     connection_alive = False
-
                 # Handle LoRa socket -> TCP socket direction
                 try:
                     data = self.lora_sock.read()
                     if data and len(data) > 0:
-                        logger.debug(f"Received {len(data)} bytes from LoRa sensor")
+                        logger.debug(f"Received {len(data)} bytes from LoRa TCP")
                         if self.sock:
                             self.sock.sendall(data)
-                            logger.debug(f"Forwarded {len(data)} bytes to TCP broker: {self.peer}")
-                        
+                            logger.debug(f"Forwarded {len(data)} bytes to remote TCP: {self.peer}")
                 except OSError as e:
                     error_str = str(e)
                     if "110" in error_str:  # ETIMEDOUT
@@ -117,17 +108,15 @@ class ConnectionBridge(Thread):
                     logger.error(f"Unexpected error reading from LoRa socket: {e}")
                     logger.debug(traceback.format_exc())
                     connection_alive = False
-                
                 # Exit if connection is no longer alive
                 if not connection_alive:
                     logger.info(f"Connection no longer alive, stopping bridge for {self.peer}")
                     break
-                    
         except Exception as e:
             logger.error(f"Fatal error in connection bridge {self.peer}: {e}")
             logger.debug(traceback.format_exc())
         finally:
-            self.is_running = False
+            self.shutdown_event.set()
             self._cleanup_resources()
             logger.info(f"Connection bridge stopped for {self.peer}")
 
@@ -135,7 +124,6 @@ class ConnectionBridge(Thread):
         """Gracefully stop the connection bridge"""
         logger.info(f"Stopping connection bridge for {self.peer}")
         self.shutdown_event.set()
-        self.is_running = False
         
         # Give the thread a moment to finish gracefully
         if self.is_alive():
@@ -180,19 +168,16 @@ class ConnectionBridge(Thread):
         """Stop all active connection bridges"""
         logger.info("Stopping all connection bridges")
         with cls.CONNECTIONS_LOCK:
-            connections_copy = cls.CONNECTIONS.copy()
-        
-        for connection in connections_copy:
-            try:
-                connection.stop()
-            except Exception as e:
-                logger.error(f"Error stopping connection {connection.peer}: {e}")
-        
+            for connection in cls.CONNECTIONS:
+                try:
+                    connection.stop()
+                except Exception as e:
+                    logger.error(f"Error stopping connection {connection.peer}: {e}")
         logger.info("All connection bridges stopped")
 
 class LoRaGateway:
     """
-    LoRa Gateway that manages incoming LoRa connections and bridges them to TCP brokers
+    LoRa Gateway that manages incoming LoRa connections and bridges them to remote TCPs
     """
 
     def __init__(self, shutdown_event: threading.Event):
@@ -203,68 +188,38 @@ class LoRaGateway:
     def run(self):
         """Main gateway loop - waits for LoRa connections and creates bridges"""
         logger.info("LoRaGateway starting up")
-        last_status_output = time.ticks_ms()
         connection_count = 0
-        
         try:
             while not self.shutdown_event.is_set():
                 try:
-                    # Status logging
-                    current_time = time.ticks_ms()
-                    if time.ticks_diff(current_time, last_status_output) > 10_000:
-                        active_connections = len(ConnectionBridge.CONNECTIONS)
-                        logger.info(f"Gateway status: {active_connections} active connections, "
-                                  f"{connection_count} total connections created")
-                        last_status_output = current_time
-                    
-                    # Wait for incoming LoRa connection
                     logger.debug("Waiting for incoming LoRa connection...")
                     listen_socket = None
-                    
                     try:
                         listen_socket = LoRaTCP()
                         logger.debug("Created LoRaTCP socket, starting listen...")
-                        listen_socket.listen()  # This blocks until connection arrives
-                        
-                        if self.shutdown_event.is_set():
-                            logger.info("Shutdown requested during listen, breaking")
-                            if listen_socket:
-                                listen_socket.close()
-                            break
-                        
-                        # Get peer information
+                        listen_socket.listen()  # Blockierend bis neue Verbindung hergestellt wurde
                         peer = listen_socket.getpeername()
                         logger.info(f"New LoRa connection received from: {peer}")
-                        
-                        # Create and start connection bridge
                         bridge = ConnectionBridge(listen_socket, peer)
                         bridge.start()
                         connection_count += 1
-                        
                         logger.info(f"Connection bridge #{connection_count} started for {peer}")
-                        
                     except Exception as e:
                         logger.error(f"Error handling incoming connection: {e}")
                         logger.debug(traceback.format_exc())
-                        
-                        # Clean up failed socket
                         if listen_socket:
                             try:
                                 listen_socket.close()
                             except:
                                 pass
-                        
-                        # Sleep briefly to avoid tight loop on persistent errors
-                        time.sleep(1.0)
-                        
+                        time.sleep(1)
                 except KeyboardInterrupt:
                     logger.info("KeyboardInterrupt received, stopping gateway")
                     break
                 except Exception as e:
                     logger.error(f"Unexpected error in gateway main loop: {e}")
                     logger.debug(traceback.format_exc())
-                    time.sleep(1.0)  # Prevent tight error loop
-                    
+                    time.sleep(1)
         except Exception as e:
             logger.error(f"Fatal error in LoRaGateway: {e}")
             logger.debug(traceback.format_exc())
@@ -279,34 +234,10 @@ class LoRaGateway:
         try:
             # Stop all connection bridges
             ConnectionBridge.stop_all_connections()
-            
             # Stop LoRa networking
             logger.info("Stopping LoRa networking...")
-            if hasattr(self, 'lora_networking') and self.lora_networking:
-                self.lora_networking.stop()
-                
-                # Wait for the networking thread to finish
-                # Give reasonable time for cleanup since _thread is used in LoRaNetworking
-                import time
-                time.sleep(1.0)
-                logger.info("LoRa networking stopped")
-            
-            # Force close all LoRaTCP instances by setting TCB states to CLOSED
-            from LoRaNetworking.LoRaTCP import LoRaTCP
-            from LoRaNetworking.TCB import TCB
-            logger.info(f"Force closing {len(LoRaTCP.INSTANCES)} remaining LoRaTCP instances")
-            instances_copy = LoRaTCP.INSTANCES.copy()
-            for tcp_instance in instances_copy:
-                try:
-                    # Force TCB state to CLOSED to break listen() loops
-                    tcp_instance.tcb.state = TCB.STATE_CLOSED
-                    tcp_instance.close()
-                    logger.debug(f"Force closed LoRaTCP instance: {tcp_instance}")
-                except Exception as e:
-                    logger.warning(f"Error force closing LoRaTCP instance: {e}")
-                
+            self.lora_networking.stop()
             logger.info("LoRaGateway stopped successfully")
-            
         except Exception as e:
             logger.error(f"Error during LoRaGateway shutdown: {e}")
             logger.debug(traceback.format_exc())
