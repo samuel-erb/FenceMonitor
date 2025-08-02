@@ -16,7 +16,7 @@ MQTT_TOPIC_VOLTAGE_THRESHOLD = b'fence_sensor/measure/threshold'
 MQTT_TOPIC_LOCATION_UPDATE = b'fence_sensor/update/location/' + str(SENSOR_ID).encode('utf-8')
 SLEEP_DURATION_MILLISECONDS = const(300_000) # 5 minutes
 
-threshold_voltage = 8_000 # V
+threshold_voltage = 8_000 # Volt
 location_should_update = True
 
 def mqtt_callback(topic, msg):
@@ -92,7 +92,7 @@ async def main(mqtt_client: LoRaMQTTClient):
             print(f"[App] No location update requested, last measurement was sent within the last hour and the measured voltage is greater or equal the threshold {threshold_voltage} >= {voltage} -> going back to sleep without sending data to MQTT Broker")
 
         await asyncio.sleep(30)
-        #await sleep_manager.sleep()
+        await sleep_manager.sleep()
 
 def send_voltage_measurement(mqtt_client: LoRaMQTTClient, measurement: ApplicationData):
     mqtt_client.publish(MQTT_TOPIC_MEASUREMENT, measurement.to_bytes(), False, 0)

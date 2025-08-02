@@ -16,7 +16,7 @@ class LoRaMQTTClient(MQTTClient):
             ssl=None,
         )
 
-    def connect(self, clean_session=True, timeout=60):  # Standard-Timeout auf 60 Sekunden gesetzt
+    def connect(self, clean_session=True, timeout=60):  # Standard-Timeout auf 60 Sekunden
         # Anstatt einen TCP-Socket zu erstellen, erstellen wir ein LoRaTCP-Socket
         self.sock = LoRaTCP()
         self.sock.settimeout(timeout)

@@ -18,18 +18,12 @@ async def collect_garbage():
         gc.collect()
         await asyncio.sleep(10)
 
-
 async def main():
     try:
         gc.enable()
         LoRaNetworking()
         await asyncio.sleep(2)
-
-        mqtt_client = LoRaMQTTClient(
-            client_id=machine.unique_id().hex(),
-            server="192.168.1.125",
-            keepalive=60 * 6
-        )
+        mqtt_client = LoRaMQTTClient(client_id=machine.unique_id().hex(), server="192.168.1.125", keepalive=60 * 6)
         try:
             mqtt_client.connect(clean_session=False)
         except Exception:
@@ -43,11 +37,7 @@ async def main():
         print("Launching main.py")
         try:
             import main
-
-            #module = __import__("main")
-            main_task = asyncio.create_task(
-                main.main(mqtt_client)
-            )
+            asyncio.create_task(main.main(mqtt_client))
         except Exception as e:
             print(f"main.py import error: {e}")
         while True:
@@ -55,6 +45,5 @@ async def main():
     except KeyboardInterrupt:
         LoRaNetworking().stop()
         machine.reset()
-
 
 asyncio.run(main())
