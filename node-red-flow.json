@@ -1,0 +1,2178 @@
+[
+    {
+        "id": "6548b2f946473cd1",
+        "type": "tab",
+        "label": "FenceSystem",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ab8170eb4fc828b0",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "2f9f297707087f61",
+            "66a6ffac5c689316",
+            "21e2cfe023b0b43c",
+            "87d9b7def2fbf4d9",
+            "627a535b870244d9",
+            "89c342d5d88ffbaa",
+            "bb77a3b8551af5f8"
+        ],
+        "x": 794,
+        "y": 259,
+        "w": 1232,
+        "h": 142
+    },
+    {
+        "id": "6b363335e5b57539",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "b87406d88f8c38bc",
+            "529e0e167304e601",
+            "2f03a0a2365db48d",
+            "895e84f290bd6e75",
+            "27d03c4dfa57810e"
+        ],
+        "x": 634,
+        "y": 79,
+        "w": 832,
+        "h": 142
+    },
+    {
+        "id": "f98d045bccf299f6",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "38708dbba2b950d5",
+            "a7bad77c66b1e123",
+            "5fb2b6f0905f943a",
+            "7f9c94eeabb562d9"
+        ],
+        "x": 14,
+        "y": 79,
+        "w": 572,
+        "h": 142
+    },
+    {
+        "id": "25e80b1ae6b4a337",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "e6409a0adf36ed59",
+            "fa447f3f3b261c02",
+            "befbacd123b8188a",
+            "efd0c715f1ce571a",
+            "f07e8ce8970320a6",
+            "c7646a54f822dfa2",
+            "f8a6e92be9579dcb"
+        ],
+        "x": 14,
+        "y": 259,
+        "w": 752,
+        "h": 222
+    },
+    {
+        "id": "24db616b7eca5bdc",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "250d18b4a92dc24c",
+            "6c0f404c741d52e1",
+            "f18a36f136a27cd8",
+            "87b65768a152af16",
+            "fd892023790d83ea",
+            "54666fc6e6afa11a",
+            "d91840d16cb6c106",
+            "6fb93fcff0364fc8",
+            "35f31bb767742d9f",
+            "1095b0975985cda9",
+            "cfcf6aa70205ce83",
+            "a751d5e1b9d3ad38",
+            "6ba83428f479885d",
+            "bd80d2a3990c279b",
+            "dd518907c1cb82b3"
+        ],
+        "x": 14,
+        "y": 519,
+        "w": 852,
+        "h": 482
+    },
+    {
+        "id": "7464c70ebe8b0527",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "6767165113b14d2f",
+            "15d790d92a35a69b",
+            "961dce459ea25d86",
+            "cca3b0fb2738c16b",
+            "10e6833c61c04ba9",
+            "bff05958800d04f3",
+            "1cb9d791d3232d8b"
+        ],
+        "x": 894,
+        "y": 759,
+        "w": 892,
+        "h": 202
+    },
+    {
+        "id": "6bcc8da2611ebe03",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "9b4f1aea8a61b91b",
+            "efd9cb013ce94979",
+            "5cfca689cf3744ad",
+            "7c2984076428e775",
+            "76a6076c3c320ca6"
+        ],
+        "x": 894,
+        "y": 1139,
+        "w": 712,
+        "h": 142
+    },
+    {
+        "id": "41adbb80255510b5",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "3c636b4267517804",
+            "check_command",
+            "telegram-sender",
+            "save-threshold",
+            "98dd8fc7a836081a",
+            "1679bd3ba526bf60",
+            "857a5c3c74b244a6"
+        ],
+        "x": 14,
+        "y": 1019,
+        "w": 772,
+        "h": 242
+    },
+    {
+        "id": "ce98130f88f58852",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "ad5ef2bef9c4f903",
+            "3d93cdf73f85c303",
+            "66809d56e185ddc5",
+            "bac2703aa8612079",
+            "954b28a326e564db",
+            "b26af57cbfae62af",
+            "bbdca72f9b830148",
+            "ee63c463480893b6",
+            "3a7f754f207a8730",
+            "01f69d6db0f1e000",
+            "c57abbf2c728e4db",
+            "85ce820fa02355af",
+            "a235577cc3a329d1",
+            "e13ed8041bfb8df1",
+            "c6f36eb71ad01fb8"
+        ],
+        "x": 894,
+        "y": 419,
+        "w": 1712,
+        "h": 322
+    },
+    {
+        "id": "380df0ceff6ce4df",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "a313085cc650e3aa",
+            "5edb3cd6fde94944",
+            "c731ef1ab87f131c",
+            "c41364eb4745d67a",
+            "ce8de2a62caea539",
+            "97c5c0986e15f4e6",
+            "1a2d990c59acec71",
+            "ddf81738dfadce8a",
+            "8e4c7467eb39b8a3",
+            "069b7bdc84eda732"
+        ],
+        "x": 14,
+        "y": 1259,
+        "w": 752,
+        "h": 262
+    },
+    {
+        "id": "16a23d5a90c34581",
+        "type": "group",
+        "z": "6548b2f946473cd1",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "01db871a6bb87e24",
+            "39543526aaa98da4",
+            "477fc849b9a73a1b",
+            "8a6bd6398ba08c78",
+            "dd4d5f2ec0dd5133"
+        ],
+        "x": 894,
+        "y": 979,
+        "w": 732,
+        "h": 142
+    },
+    {
+        "id": "2f9f297707087f61",
+        "type": "mqtt in",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "Voltage measurement",
+        "topic": "fence_sensor/measure/voltage",
+        "qos": "2",
+        "datatype": "buffer",
+        "broker": "f0688d62e77df5ee",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 920,
+        "y": 360,
+        "wires": [
+            [
+                "89c342d5d88ffbaa"
+            ]
+        ]
+    },
+    {
+        "id": "b87406d88f8c38bc",
+        "type": "file in",
+        "z": "6548b2f946473cd1",
+        "g": "6b363335e5b57539",
+        "name": "Read sensor mapping from file",
+        "filename": "sensor_mapping.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 970,
+        "y": 180,
+        "wires": [
+            [
+                "529e0e167304e601"
+            ]
+        ]
+    },
+    {
+        "id": "529e0e167304e601",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "6b363335e5b57539",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\r\\n",
+        "temp": "sid,name",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1150,
+        "y": 180,
+        "wires": [
+            [
+                "2f03a0a2365db48d"
+            ]
+        ]
+    },
+    {
+        "id": "a513d9c8af1716dd",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "sid,name",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 990,
+        "y": 1440,
+        "wires": [
+            [
+                "1bfb573899d78ca0"
+            ]
+        ]
+    },
+    {
+        "id": "609ac96156d56e8e",
+        "type": "inject",
+        "z": "6548b2f946473cd1",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"sid\":0,\"name\":\"Koppel am Sportplatz\"}",
+        "payloadType": "json",
+        "x": 990,
+        "y": 1400,
+        "wires": [
+            [
+                "a513d9c8af1716dd"
+            ]
+        ]
+    },
+    {
+        "id": "1bfb573899d78ca0",
+        "type": "file",
+        "z": "6548b2f946473cd1",
+        "name": "",
+        "filename": "sensor_mapping.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1040,
+        "y": 1480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2f03a0a2365db48d",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "6b363335e5b57539",
+        "name": "Store sensor list in global var",
+        "func": "if (msg.payload.length === 0) {\n    node.warn(\"No items in sensor map yet\")\n    return;\n    }\nconst firstItem = msg.payload[0]\nif (!Object.hasOwn(firstItem, \"sid\") || !Object.hasOwn(firstItem, \"name\")) {\n    node.warn(\"Object does not have the correct format! Aborting propagating the sensor map to the global value!\")\n    return;\n}\n\nconst sensorMap = msg.payload.reduce((acc, item, index) => {\n    acc[item[\"sid\"]] = item[\"name\"];\n    return acc;\n}, {});\n\nflow.set(\"sensorMapping\", sensorMap)\n\nnode.warn(sensorMap);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "befbacd123b8188a",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "Converting data from db",
+        "func": "/**\n * We are getting data in this format:\n * {\n *  result: \"last_per_sensor\",\n *  _time: ISO time string\n *  _field: \"battery\" | \"voltage\"\n *  _value: number\n *  _sensorId: string\n * }\n * \n * Our output looks like so:\n * Array<{name?: string, battery: number, voltage: number, time: \"ISO-Date\", sensorId: number}> \n */\n\nconst sensorMapping = global.get(\"sensorMapping\");\n\nlet results = msg.payload;\n\nnode.warn(`results:`);\nnode.warn(results);\n\nresults = results\n    .filter(item => item.sensorId !== \"\")\n    .reduce((acc, item) => {\n        if (!Object.hasOwn(acc, item.sensorId)) {\n            acc[item.sensorId] = {name: sensorMapping[item.sensorId], time: item._time, sensorId: item.sensorId};\n        }\n\n        switch (item._field) {\n            case \"battery\":\n                acc[item.sensorId][\"battery\"] = item._value;\n                break;\n            case \"voltage\":\n                acc[item.sensorId][\"voltage\"] = item._value;\n                break;\n            default:\n                node.warn(\"Field not supported: \" + item._field);\n        }\n\n        return acc;\n    }, {});\n\nmsg.payload = Object.values(results)\n\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "c7646a54f822dfa2"
+            ]
+        ]
+    },
+    {
+        "id": "a7bad77c66b1e123",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "f98d045bccf299f6",
+        "name": "Chat-ID in Liste speichern",
+        "func": "// Chat-ID aus der Nachricht extrahieren\nconst chatId = msg.payload.chatId;\nconst userName = msg.originalMessage.from?.first_name || msg.originalMessage.from?.username || \"Unbekannt\";\n\nnode.warn(msg)\n\n// Aktuelle Liste der Chat-IDs abrufen oder neue Liste erstellen\nlet chatIdList = flow.get(\"telegramChatIds\") || [];\n\n// Prüfen, ob diese Chat-ID bereits in der Liste ist\nconst existsIndex = chatIdList.findIndex(item => item.chatId === chatId);\n\nif (existsIndex === -1) {\n    // Wenn nicht in der Liste, dann hinzufügen\n    chatIdList.push({\n        chatId: chatId,\n        userName: userName,\n        addedAt: new Date().toISOString()\n    });\n    node.status({fill:\"green\", shape:\"dot\", text:\"Neue Chat-ID hinzugefügt\"});\n} else {\n    // Wenn bereits in der Liste, dann aktualisieren\n    chatIdList[existsIndex].userName = userName;\n    chatIdList[existsIndex].lastSeen = new Date().toISOString();\n    node.status({fill:\"blue\", shape:\"dot\", text:\"Chat-ID aktualisiert\"});\n}\n\n// Liste im globalen Kontext speichern\nflow.set(\"telegramChatIds\", chatIdList);\n\n// Bestätigungsnachricht vorbereiten\nmsg.payload = {\n    chatId: chatId,\n    type: 'message',\n    content: `Hallo ${userName}! Der Bot wurde gestartet und deine Chat-ID wurde gespeichert.\\n\\nVerfügbare Befehle:\\n/start - Bot starten\\n/overview - Liste der Sensorknoten anzeigen\\n/location - Standort einzelner Sensorknoten als Karte anzeigen`\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 180,
+        "wires": [
+            [
+                "5fb2b6f0905f943a"
+            ]
+        ]
+    },
+    {
+        "id": "efd0c715f1ce571a",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "Prepare query with chat id",
+        "func": "msg.chatId = msg.payload.chatId;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 360,
+        "wires": [
+            [
+                "fa447f3f3b261c02"
+            ]
+        ]
+    },
+    {
+        "id": "c7646a54f822dfa2",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "Preparing overview message",
+        "func": "/**\n * We are receiving a message with this format:\n * {\n *  <sensor_id>: {name: string, battery: number, voltage: number},\n *  <sensor_id>: {name: string, battery: number, voltage: number}\n * }\n */\n\nfunction timeAgo(isoString) {\n    const time = new Date(isoString);\n    const now = new Date();\n    const diffMs = now.getTime() - time.getTime();\n    const diffSec = Math.floor(diffMs / 1000);\n    const diffMin = Math.floor(diffSec / 60);\n    const diffHr = Math.floor(diffMin / 60);\n    const diffDay = Math.floor(diffHr / 24);\n\n    if (diffSec < 60) return `vor ${diffSec} Sekunde${diffSec === 1 ? '' : 'n'}`;\n    if (diffMin < 60) return `vor ${diffMin} Minute${diffMin === 1 ? '' : 'n'}`;\n    if (diffHr < 24) return `vor ${diffHr} Stunde${diffHr === 1 ? '' : 'n'}`;\n    if (diffDay === 1) return `gestern`;\n    if (diffDay < 7) return `vor ${diffDay} Tag${diffDay === 1 ? '' : 'en'}`;\n    if (diffDay < 30) return `vor ${Math.floor(diffDay / 7)} Woche${Math.floor(diffDay / 7) === 1 ? '' : 'n'}`;\n\n    const diffMonth = Math.floor(diffDay / 30);\n    if (diffMonth < 12) return `vor ${diffMonth} Monat${diffMonth === 1 ? '' : 'en'}`;\n\n    const diffYear = Math.floor(diffMonth / 12);\n    return `vor ${diffYear} Jahr${diffYear === 1 ? '' : 'en'}`;\n}\n\nlet message = \"\";\n\nmessage += \"📊 *Übersicht der Sensorknoten:*\\n\\n\";\n\nconst sensorTexts = msg.payload.map((item) => {\n    let sensorText = \"\";\n    const name = item.name ?? `Sensor ${item.sensorId}`;\n    sensorText += `*${name}*\\n`;\n\n    const voltage = item.voltage / 1000;\n    sensorText += `⚡ Spannung: ${voltage} kV\\n`;\n\n    sensorText += `🔋 Batterie: ${item.battery}%\\n`;\n\n    sensorText += `🕒 Letztes Update: ${timeAgo(item.time)}\\n`;\n\n    return sensorText;\n});\n\nmessage += sensorTexts.join(\"\\n\");\n\nmsg.payload = {\n    chatId: msg.chatId,\n    type: 'message',\n    content: message,\n    options: {\n        parse_mode: \"Markdown\",\n        disable_web_page_preview: false\n    }\n};\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 440,
+        "wires": [
+            [
+                "f07e8ce8970320a6"
+            ]
+        ]
+    },
+    {
+        "id": "6c0f404c741d52e1",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Prepare rename sensor inline keyboard",
+        "func": "\nconst opts = {\n    \"chat_id\": msg.chatId,\n    \"text\": \"Bitte wählen Sie den Sensor aus dem Sie einen neuen Namen geben möchten: \",\n    \"reply_markup\": {\n        \"inline_keyboard\": msg.payload.map((item) => [{\n            \"text\": item.name,\n            \"callback_data\": `rename_sensor_${item.sensorId}`\n        }])\n    }\n}\n\n\nmsg.error = false;\n\nmsg.payload.content = \"Bitte wählen Sie den Sensor aus dem Sie einen neuen Namen geben möchten: \";\nmsg.payload.options = opts;\nmsg.payload.chatId = msg.chatId;\nmsg.payload.type = \"message\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 720,
+        "wires": [
+            [
+                "54666fc6e6afa11a"
+            ]
+        ]
+    },
+    {
+        "id": "f18a36f136a27cd8",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Prepare query with chat id",
+        "func": "msg.chatId = msg.payload.chatId;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 640,
+        "wires": [
+            [
+                "87b65768a152af16"
+            ]
+        ]
+    },
+    {
+        "id": "fd892023790d83ea",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Converting data from db",
+        "func": "/**\n * We are getting data in this format:\n * {\n *  result: \"last_per_sensor\",\n *  _time: ISO time string\n *  _field: \"battery\" | \"voltage\"\n *  _value: number\n *  _sensorId: string\n * }\n * \n * Our output looks like so:\n * Array<{name: string, sensorId: number}> \n */\n\nconst sensorMapping = flow.get(\"sensorMapping\");\n\nlet results = msg.payload;\n\nresults = results\n    .filter(item => item.sensorId !== \"\")\n    .reduce((acc, item, index) => {\n        if (!acc[item.sensorId]) {\n            acc[item.sensorId] = { name: sensorMapping[item.sensorId] ?? `Sensor ${item.sensorId}`, sensorId: item.sensorId};\n        }\n        return acc;\n    }, {});\n\nmsg.payload = Object.values(results)\n\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 170,
+        "y": 720,
+        "wires": [
+            [
+                "6c0f404c741d52e1"
+            ]
+        ]
+    },
+    {
+        "id": "6fb93fcff0364fc8",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Set the sensor to rename to flow var",
+        "func": "msg.callback = msg.payload;\nmsg.payload.chatId = msg.payload.chatId;\n\nif (!msg.payload.content.startsWith(\"rename_sensor\")) {\n    node.warn(\"Callback not for this node!\");\n    return;\n}\n\nflow.set(\"renameSensor\", msg.payload.content.replace(\"rename_sensor_\", \"\"))\nmsg.payload.content = \"OK. Sende mir den neuen Namen für den Sensor indem du diese Nachricht gedrückt hältst und auf Antworten klickst.\"\nmsg.payload.type = \"message\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 800,
+        "wires": [
+            [
+                "1095b0975985cda9"
+            ]
+        ]
+    },
+    {
+        "id": "cfcf6aa70205ce83",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Rename sensor globally",
+        "func": "const sensorId = flow.get(\"renameSensor\");\nflow.set(\"renameSensor\", null);\nconst newName = msg.payload.content;\n\nif (!sensorId) {\n    msg.payload.content = \"Fehler: Kein Sensor ausgewählt.\";\n    return msg;\n}\n\n// Update Mapping\nlet sensorMapping = flow.get(\"sensorMapping\") || {};\nsensorMapping[sensorId] = newName;\nflow.set(\"sensorMapping\", sensorMapping);\n\nmsg.payload.content = `Sensor ${sensorId} heißt jetzt: ${newName}`;\n\nconst csvFormat = Object.keys(sensorMapping).map((key) => ({sid: key, name: sensorMapping[key]}))\n\nnode.warn(sensorMapping);\nreturn [msg, { payload: csvFormat }];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 880,
+        "wires": [
+            [
+                "a751d5e1b9d3ad38"
+            ],
+            [
+                "6ba83428f479885d"
+            ]
+        ]
+    },
+    {
+        "id": "6ba83428f479885d",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "sid,name",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 550,
+        "y": 960,
+        "wires": [
+            [
+                "bd80d2a3990c279b"
+            ]
+        ]
+    },
+    {
+        "id": "bd80d2a3990c279b",
+        "type": "file",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "filename": "sensor_mapping.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 740,
+        "y": 960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "dd518907c1cb82b3",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Rename Sensor",
+        "info": "",
+        "x": 120,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "895e84f290bd6e75",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "6b363335e5b57539",
+        "name": "Read sensor mapping into memory on startup",
+        "info": "",
+        "x": 850,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "21e2cfe023b0b43c",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "Write measurements into db",
+        "info": "",
+        "x": 940,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "7f9c94eeabb562d9",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "f98d045bccf299f6",
+        "name": "Save chat id for notifications",
+        "info": "",
+        "x": 160,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "f8a6e92be9579dcb",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "Sensor overview",
+        "info": "",
+        "x": 120,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "6767165113b14d2f",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "Prepare low voltage message or notfiy for all clear",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/**\n * @typedef {Object} SensorDataDB\n * @property {string} [name] - Optionaler Name des Sensors\n * @property {number} battery - Batteriestand in Prozent (0–100)\n * @property {number} voltage - Spannung in Millivolt (z. B. 2500)\n * @property {string} time - Zeitstempel im ISO 8601-Format\n * @property {string} id - Eindeutige ID des Sensors\n */\n\n/**\n * \n * and an object in previousSensorStates like so:\n * Array<{name?: string, battery: number, voltage: number, time: \"ISO-Date\", sensorId: number}> \n * \n * We want to look up the chatIds and notify everyone about a sensor\n * reporting a voltage below the threshold. The notification consists of\n * one text message and a location.\n */\n\n/** @type {SensorData} */\nconst currentSensorData = msg.currentSensorData;\n\n/** @type {SensorDataDB[]} */\nconst previousSensorStates = msg.previousSensorData\n\n\n/** @type {(SensorDataDB | undefined)} */\nconst previousSensorData = previousSensorStates.find(s => s.id === currentSensorData.id);\n\nconst sensorMapping = flow.get(\"sensorMapping\");\nconst chatIds = flow.get(\"telegramChatIds\") || [];\nconst voltageThreshold = flow.get(\"voltageThreshold\") || 4000;\n\n\n// check if the message contained a location; use it otherwise grab an old one\nlet location = {}\nif (currentSensorData.latitude !== undefined && currentSensorData.longitude !== undefined) {\n    location = {\n        lat: currentSensorData.latitude,\n        lon: currentSensorData.longitude\n    }\n} else {\n    const sensorLocations = flow.get(\"sensorLocations\") || [];\n    location = sensorLocations.find(l => l.sid == currentSensorData.id);\n}\n\n\n\nconst measurement = {\n    sensorId: currentSensorData.sensorId,\n    name: currentSensorData.name,\n    voltage: currentSensorData.voltage,\n    battery: currentSensorData.battery,\n    location\n};\n\nnode.warn(`Vorher: ${previousSensorData?.voltage} jetzt: ${measurement.voltage} threshold: ${voltageThreshold}`)\n\n// Früher Exit: Wenn Grenzwert 8000 ist, keine Warnungen/Entwarnungen\nif (voltageThreshold === 8000) return;\n\n// Entwarnung wenn Spannung jetzt über dem Schwellenwert UND vorher unter dem Schwellenwert\nif (\n    measurement.voltage > voltageThreshold &&\n    previousSensorData?.voltage <= voltageThreshold\n) {\n    const messages = [];\n\n    for (const chat of chatIds) {\n        const chatId = chat.chatId;\n\n        messages.push({\n            payload: {\n                chatId,\n                type: \"message\",\n                content: `✅ *Entwarnung*: ${measurement.name ?? measurement.sensorId} meldet ${measurement.voltage} Volt!`,\n                options: {\n                    parse_mode: \"Markdown\"\n                }\n            }\n        });\n    }\n\n    return [messages];\n}\n\n// Funktion beenden, wenn Spannung über dem Schwellenwert liegt\nif (measurement.voltage > voltageThreshold) return;\n\n// Wenn die Spannung schon zuvor unter oder gleich dem Schwellenwert war, keine doppelte Warnung senden\nif (previousSensorData?.voltage <= voltageThreshold) return;\n\nconst messages = [];\n\nfor (const chat of chatIds) {\n    const chatId = chat.chatId;\n\n    messages.push({\n        payload: {\n            chatId,\n            type: \"message\",\n            content: `⚠️ *WARNUNG*: ${measurement.name ?? measurement.sensorId} meldet ${measurement.voltage} Volt!`,\n            options: {\n                parse_mode: \"Markdown\"\n            }\n        }\n    });\n\n    if (measurement.location !== undefined) {\n        messages.push({\n            payload: {\n                chatId,\n                type: \"location\",\n                content: {\n                    latitude: measurement.location.lat,\n                    longitude: measurement.location.lon\n                }\n            }\n        });\n    }\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1110,
+        "y": 920,
+        "wires": [
+            [
+                "961dce459ea25d86"
+            ]
+        ]
+    },
+    {
+        "id": "87d9b7def2fbf4d9",
+        "type": "link out",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "SensorData",
+        "mode": "link",
+        "links": [
+            "15d790d92a35a69b",
+            "9b4f1aea8a61b91b",
+            "66809d56e185ddc5",
+            "069b7bdc84eda732"
+        ],
+        "x": 1305,
+        "y": 300,
+        "wires": [],
+        "inputLabels": [
+            "SensorData"
+        ]
+    },
+    {
+        "id": "15d790d92a35a69b",
+        "type": "link in",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "Get measurement",
+        "links": [
+            "87d9b7def2fbf4d9"
+        ],
+        "x": 935,
+        "y": 860,
+        "wires": [
+            [
+                "1cb9d791d3232d8b"
+            ]
+        ],
+        "outputLabels": [
+            "SensorData"
+        ]
+    },
+    {
+        "id": "cca3b0fb2738c16b",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "Notify all users if low voltage detected",
+        "info": "",
+        "x": 1070,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "9b4f1aea8a61b91b",
+        "type": "link in",
+        "z": "6548b2f946473cd1",
+        "g": "6bcc8da2611ebe03",
+        "name": "link in 2",
+        "links": [
+            "87d9b7def2fbf4d9"
+        ],
+        "x": 935,
+        "y": 1240,
+        "wires": [
+            [
+                "efd9cb013ce94979"
+            ]
+        ]
+    },
+    {
+        "id": "efd9cb013ce94979",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "6bcc8da2611ebe03",
+        "name": "Convert location and store it in flow var",
+        "func": "/**\n * We receive a message with payload like so:\n * {\n *  topic: string,\n *  payload: {sid: number, vol: number, bat: number: lon: number, lat: number},\n *  qos: numer,\n *  retain: boolean\n * }\n * \n */\n\n/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\nlet locations = flow.get(\"sensorLocations\") || [];\n/** @type {SensorData} */\nconst payload = msg.payload;\n\nconst location = {\n    sid: payload.id,\n    lat: payload.latitude,\n    lon: payload.longitude\n};\n\nif (location.lat == undefined || location.lon == undefined) return;\n\nlocations = locations\n// remove entry with id of this measurement\n.filter(l => l.sid != location.sid)\n// filter duplicates\n    .filter((item, index, self) =>\n        index === self.findIndex((el) => el.sid === item.sid)\n    );\n    \nlocations.push(location);\n\nflow.set(\"sensorLocations\", locations);\n\nmsg.payload = locations;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 1240,
+        "wires": [
+            [
+                "5cfca689cf3744ad"
+            ]
+        ]
+    },
+    {
+        "id": "5cfca689cf3744ad",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "6bcc8da2611ebe03",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "sid,lat,lon",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1330,
+        "y": 1240,
+        "wires": [
+            [
+                "7c2984076428e775"
+            ]
+        ]
+    },
+    {
+        "id": "7c2984076428e775",
+        "type": "file",
+        "z": "6548b2f946473cd1",
+        "g": "6bcc8da2611ebe03",
+        "name": "",
+        "filename": "sensor_locations.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1480,
+        "y": 1240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "01db871a6bb87e24",
+        "type": "file in",
+        "z": "6548b2f946473cd1",
+        "g": "16a23d5a90c34581",
+        "name": "",
+        "filename": "sensor_locations.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 1200,
+        "y": 1080,
+        "wires": [
+            [
+                "39543526aaa98da4"
+            ]
+        ]
+    },
+    {
+        "id": "39543526aaa98da4",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "16a23d5a90c34581",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "sid,lat,lon",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1350,
+        "y": 1080,
+        "wires": [
+            [
+                "477fc849b9a73a1b"
+            ]
+        ]
+    },
+    {
+        "id": "477fc849b9a73a1b",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "16a23d5a90c34581",
+        "name": "Store in flow var",
+        "func": "/**\n * We are receiving a message with a payload like so:\n * Array<{\n *  sid: number,\n *  lat: number,\n *  lon: number\n * }>\n */\n\nnode.warn(msg.payload);\nflow.set(\"sensorLocations\", msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1520,
+        "y": 1080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8a6bd6398ba08c78",
+        "type": "inject",
+        "z": "6548b2f946473cd1",
+        "g": "16a23d5a90c34581",
+        "name": "Startup trigger",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 1020,
+        "y": 1080,
+        "wires": [
+            [
+                "01db871a6bb87e24"
+            ]
+        ]
+    },
+    {
+        "id": "27d03c4dfa57810e",
+        "type": "inject",
+        "z": "6548b2f946473cd1",
+        "g": "6b363335e5b57539",
+        "name": "Startup trigger",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 760,
+        "y": 180,
+        "wires": [
+            [
+                "b87406d88f8c38bc"
+            ]
+        ]
+    },
+    {
+        "id": "76a6076c3c320ca6",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "6bcc8da2611ebe03",
+        "name": "Store incomming sensor location",
+        "info": "",
+        "x": 1050,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "check_command",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "Check for command",
+        "func": "node.warn(msg)\nmsg.payload = {\n    chatId: msg.payload.chatId,\n    type: \"message\",\n    content: \"Ab welchem Schwellenwert möchten Sie benachrichtigt werden? Wenn der Sensor einen Spannungswert unterhalb Ihrer Auswahl misst, werden Sie benachrichtigt.\",\n    options: {\n        reply_markup: {\n            inline_keyboard: [\n                [\n                    { text: \"2.500 V\", callback_data: \"threshold_2500\" },\n                    { text: \"4.000 V\", callback_data: \"threshold_4000\" },\n                    { text: \"6.000 V\", callback_data: \"threshold_6000\" }\n                ],\n                [\n                    { text: \"Benachrichtigung ausschalten\", callback_data: \"threshold_8000\" }\n                ]\n            ]\n        }\n    }\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 1120,
+        "wires": [
+            [
+                "telegram-sender"
+            ]
+        ]
+    },
+    {
+        "id": "save-threshold",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "Save Threshold & Reply",
+        "func": "msg.callback = msg.payload;\n\nif (!msg.payload.content.startsWith(\"threshold\")) {\n    node.warn(\"Callback not for this node!\");\n    return;\n}\n\nconst voltageMap = {\n    0: 0,\n    2500: 1,\n    4000: 2,\n    6000: 3,\n    8000: 4\n}\n\n// callback_query enthält die Auswahl\nconst selection = parseInt(msg.payload.content.replace(\"threshold_\", \"\"));\nif (!isNaN(selection)) {\n    flow.set(\"voltageThreshold\", selection);\n\n    const content = selection === 8000 ?\n    \"✅ *Benachrichtigungen deaktiviert*\\n\\nSie können die Benachrichtigungen jederzeit wieder einschalten indem sie das /threshold Kommando benutzen...\" :\n        `✅ Ich werde Sie bei einer Spannung ≤ ${selection / 1000} kV benachrichtigen!`;\n\n    const response = {\n        payload: {\n            chatId: msg.payload.chatId,\n            type: \"message\",\n            content,\n            options: {\n                parse_mode: \"Markdown\"\n            }\n        }\n    }\n\n    const volatageByte = voltageMap[selection] & 0b111\n    const buf = Buffer.alloc(1);\n    buf.writeUInt8(volatageByte, 0);\n\n    // Callback bestätigen (damit das Loading verschwindet)\n    /*const ack = {\n        payload: {\n            type: \"callback_query\",\n            callback_query_id: msg.payload.callbackQueryId\n        }\n    };\n    */\n\n    //node.send([ack, response]);\n    node.send([response, { payload: buf }])\n} else {\n    return null;\n}",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 1200,
+        "wires": [
+            [
+                "telegram-sender"
+            ],
+            [
+                "857a5c3c74b244a6"
+            ]
+        ]
+    },
+    {
+        "id": "1679bd3ba526bf60",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "Change threshold",
+        "info": "",
+        "x": 130,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "bff05958800d04f3",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "Converting data from db",
+        "func": "/**\n * @typedef {Object} RawInfluxData\n * @property {\"last_per_sensor\"} result - Art der Messung\n * @property {string} _time - Zeitstempel im ISO 8601-Format\n * @property {\"battery\" | \"voltage\"} _field - Typ des Messwerts\n * @property {number} _value - Gemessener Wert (z. B. Spannung oder Batterie)\n * @property {string} sensorId - Eindeutige ID des Sensors\n */\n\n/**\n * @typedef {Object} SensorDataDB\n * @property {string} [name] - Optionaler Name des Sensors\n * @property {number} battery - Batteriestand in Prozent (0–100)\n * @property {number} voltage - Spannung in Millivolt (z. B. 2500)\n * @property {string} time - Zeitstempel im ISO 8601-Format\n * @property {string} id - Eindeutige ID des Sensors\n */\n\n/**\n * We are getting data in this format:\n * {\n *  result: \"last_per_sensor\",\n *  _time: ISO time string\n *  _field: \"battery\" | \"voltage\"\n *  _value: number\n *  _sensorId: string\n * }\n * \n * Our output looks like so:\n * Array<{name?: string, battery: number, voltage: number, time: \"ISO-Date\", sensorId: number}> \n */\n\nconst sensorMapping = flow.get(\"sensorMapping\");\n\n/** @type {RawInfluxData[]} */\nlet results = msg.payload;\n\n\n/** @type {SensorDataDB[]} */\nconst sensorData = Object.values(\n    results\n        .filter(item => item.sensorId !== \"\")\n        .reduce((acc, item) => {\n            if (!acc[item.sensorId]) {\n                acc[item.sensorId] = { name: sensorMapping[item.sensorId], time: item._time, id: item.sensorId };\n            }\n\n            switch (item._field) {\n                case \"battery\":\n                    acc[item.sensorId][\"battery\"] = item._value;\n                    break;\n                case \"voltage\":\n                    acc[item.sensorId][\"voltage\"] = item._value;\n                    break;\n                default:\n                    node.warn(\"Field not supported: \" + item._field);\n            }\n\n            return acc;\n        }, {})\n);\n\nmsg.previousSensorData = sensorData;\n\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1650,
+        "y": 860,
+        "wires": [
+            [
+                "6767165113b14d2f"
+            ]
+        ]
+    },
+    {
+        "id": "627a535b870244d9",
+        "type": "delay",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1760,
+        "y": 360,
+        "wires": [
+            [
+                "66a6ffac5c689316"
+            ]
+        ]
+    },
+    {
+        "id": "1cb9d791d3232d8b",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "Move SensorData to msg.currentSensorData",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/** @type {SensorData} */\nconst sensorData = msg.payload\nmsg.currentSensorData = sensorData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1130,
+        "y": 860,
+        "wires": [
+            [
+                "10e6833c61c04ba9"
+            ]
+        ]
+    },
+    {
+        "id": "adb9e1b06c3abd89",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "name": "RawSensorData -> SensorData",
+        "func": "/**\n * Konvertiert MQTT-Nachrichten, die eine Messung \n * enthalten, in ein ansprechenderes Format und \n * fügt den konfigurierten Sensornamen hinzu.\n */\n\n/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number | undefined} latitude\n * @prop {number | undefined} longitude\n */\n\nconst rawSensorData = msg.payload;\n\nif (!Buffer.isBuffer(rawSensorData) || (rawSensorData.length !== 2 && rawSensorData.length !== 6)) {\n    node.error(\"Ungültiges Paket. Erwartet 2 oder 6 Bytes.\");\n    return;\n}\n\nconst QUANT_MAX = 65535;\nconst LAT_MIN = 47.0;\nconst LAT_MAX = 55.0;\nconst LON_MIN = 5.5;\nconst LON_MAX = 15.0;\n\nconst voltageMap = {\n    0: 0,\n    1: 2500,\n    2: 4000,\n    3: 6000,\n    4: 8000\n};\n\nfunction dequantize(q, min, max) {\n    if (q === 0) return undefined;\n    return (q / QUANT_MAX) * (max - min) + min;\n}\n\nconst sensorId = rawSensorData[0];\nconst byte2 = rawSensorData[1];\nconst voltage = byte2 >> 5;\nconst battery = (byte2 & 0b11111) / 31.0;\n\nconst sensorMapping = global.get(\"sensorMapping\") || {};\nconst sensor_id = String(sensorId);\nconst name = sensorMapping[sensor_id] ?? `Sensor ${sensor_id}`;\n\n// Grundstruktur\n/** @type {SensorData} */\nconst sensorData = {\n    id: sensor_id,\n    name,\n    voltage: voltageMap[voltage] ?? -1,\n    battery: Math.round(battery * 100),\n    latitude: undefined,\n    longitude: undefined\n};\n\nif (rawSensorData.length === 6) {\n    const latQ = rawSensorData.readUInt16BE(2);\n    const lonQ = rawSensorData.readUInt16BE(4);\n\n    sensorData.latitude = dequantize(latQ, LAT_MIN, LAT_MAX);\n    sensorData.longitude = dequantize(lonQ, LON_MIN, LON_MAX);\n}\n\nmsg.payload = sensorData;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 150,
+        "y": 20,
+        "wires": [
+            []
+        ],
+        "inputLabels": [
+            "RawSensorData"
+        ],
+        "outputLabels": [
+            "SensorData"
+        ],
+        "info": "Konvertiert MQTT-Nachrichten, die eine Messung \nenthalten in ein ansprechenderes Format und \nfügt den konfigurierten Sensornamen hinzu."
+    },
+    {
+        "id": "39ba0503795676a5",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "name": "SensorData -> InfluxDBVoltageMeasurement",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/**\n * @typedef {Object} SensorMeasurement\n * @property {number} voltage - Die gemessene Spannung in Millivolt (z. B. 2500)\n * @property {number} battery - Der Ladezustand der Batterie in Prozent (0–100)\n */\n\n/**\n * @typedef {Object} SensorMeta\n * @property {string|number} sensorId - Die eindeutige ID des Sensors\n */\n\n/**\n * @typedef {[SensorMeasurement, SensorMeta]} InfluxDBVoltageMeasurement\n * Ein Array bestehend aus einem Messwertobjekt und einem Sensor-Identifikator.\n */\n\nvar mqttMessage = msg.payload;\nif (!mqttMessage) return;\n\n/** @type {SensorData} */\nconst sensorData = msg.payload;\n\n/** @type {InfluxDBVoltageMeasurement} */\nconst influxData = [\n    {\n        voltage: sensorData.voltage,\n        battery: sensorData.battery\n    },\n    {\n        sensorId: sensorData.id\n    }\n];\n\nmsg.payload = influxData;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 20,
+        "wires": [
+            []
+        ],
+        "inputLabels": [
+            "SensorData"
+        ],
+        "outputLabels": [
+            "InfluxDBVoltageMeasurement"
+        ]
+    },
+    {
+        "id": "89c342d5d88ffbaa",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "RawSensorData -> SensorData",
+        "func": "/**\n * Konvertiert MQTT-Nachrichten, die eine Messung \n * enthalten, in ein ansprechenderes Format und \n * fügt den konfigurierten Sensornamen hinzu.\n */\n\n/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number | undefined} latitude\n * @prop {number | undefined} longitude\n */\n\nconst rawSensorData = msg.payload;\n\nif (!Buffer.isBuffer(rawSensorData) || (rawSensorData.length !== 2 && rawSensorData.length !== 6)) {\n    node.error(\"Ungültiges Paket. Erwartet 2 oder 6 Bytes.\");\n    return;\n}\n\nconst QUANT_MAX = 65535;\nconst LAT_MIN = 47.0;\nconst LAT_MAX = 55.0;\nconst LON_MIN = 5.5;\nconst LON_MAX = 15.0;\n\nconst voltageMap = {\n    0: 0,\n    1: 2500,\n    2: 4000,\n    3: 6000,\n    4: 8000\n};\n\nfunction dequantize(q, min, max) {\n    if (q === 0) return undefined;\n    return (q / QUANT_MAX) * (max - min) + min;\n}\n\nconst sensorId = rawSensorData[0];\nconst byte2 = rawSensorData[1];\nconst voltage = byte2 >> 5;\nconst battery = (byte2 & 0b11111) / 31.0;\n\nconst sensorMapping = flow.get(\"sensorMapping\") || {};\nconst sensor_id = String(sensorId);\nconst name = sensorMapping[sensor_id] ?? `Sensor ${sensor_id}`;\n\n// Grundstruktur\nconst sensorData = {\n    id: sensor_id,\n    name,\n    voltage: voltageMap[voltage] ?? -1,\n    battery: Math.round(battery * 100)\n};\n\nif (rawSensorData.length === 6) {\n    const latQ = rawSensorData.readUInt16BE(2);\n    const lonQ = rawSensorData.readUInt16BE(4);\n\n    sensorData.latitude = dequantize(latQ, LAT_MIN, LAT_MAX);\n    sensorData.longitude = dequantize(lonQ, LON_MIN, LON_MAX);\n}\n\nnode.error(sensorData);\n\nmsg.payload = sensorData;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1150,
+        "y": 360,
+        "wires": [
+            [
+                "bb77a3b8551af5f8",
+                "87d9b7def2fbf4d9"
+            ]
+        ],
+        "inputLabels": [
+            "RawSensorData"
+        ],
+        "outputLabels": [
+            "SensorData"
+        ],
+        "info": "Konvertiert MQTT-Nachrichten, die eine Messung \nenthalten in ein ansprechenderes Format und \nfügt den konfigurierten Sensornamen hinzu."
+    },
+    {
+        "id": "bb77a3b8551af5f8",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "name": "SensorData -> InfluxDBVoltageMeasurement",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/**\n * @typedef {Object} SensorMeasurement\n * @property {number} voltage - Die gemessene Spannung in Millivolt (z. B. 2500)\n * @property {number} battery - Der Ladezustand der Batterie in Prozent (0–100)\n */\n\n/**\n * @typedef {Object} SensorMeta\n * @property {string|number} sensorId - Die eindeutige ID des Sensors\n */\n\n/**\n * @typedef {[SensorMeasurement, SensorMeta]} InfluxDBVoltageMeasurement\n * Ein Array bestehend aus einem Messwertobjekt und einem Sensor-Identifikator.\n */\n\nvar mqttMessage = msg.payload;\nif (!mqttMessage) return;\n\n/** @type {SensorData} */\nconst sensorData = msg.payload;\n\n/** @type {InfluxDBVoltageMeasurement} */\nconst influxData = [\n    {\n        voltage: sensorData.voltage,\n        battery: sensorData.battery\n    },\n    {\n        sensorId: sensorData.id\n    }\n];\n\nmsg.payload = influxData;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1490,
+        "y": 360,
+        "wires": [
+            [
+                "627a535b870244d9"
+            ]
+        ],
+        "inputLabels": [
+            "SensorData"
+        ],
+        "outputLabels": [
+            "InfluxDBVoltageMeasurement"
+        ]
+    },
+    {
+        "id": "ad5ef2bef9c4f903",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Check if the sensor of this measurement is known to the system",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/** @type {SensorData} */\nconst sensorData = msg.payload;\nlet sensorMapping = flow.get(\"sensorMapping\");\nif (!sensorMapping) sensorMapping = {}\n\n\n\nconst sensorId = `${sensorData.id}`\n\nif (!Object.keys(sensorMapping).includes(sensorId)) {\n    node.warn(`Sensor mit ID ${sensorId} noch nicht bekannt!`);\n    sensorMapping[sensorId] = `Sensor ${sensorId}`;\n\n    flow.set(\"sensorMapping\", sensorMapping);\n\n    msg.paylaod = Object.keys(sensorMapping).map((key) => ({ sid: key, name: sensorMapping[key] }))\n    return [msg, {payload: sensorData}]\n} else {\n    return;\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1190,
+        "y": 520,
+        "wires": [
+            [
+                "bac2703aa8612079"
+            ],
+            [
+                "85ce820fa02355af"
+            ]
+        ]
+    },
+    {
+        "id": "3d93cdf73f85c303",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Maintain sensors known to system",
+        "info": "",
+        "x": 1080,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "66809d56e185ddc5",
+        "type": "link in",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "link in 1",
+        "links": [
+            "87d9b7def2fbf4d9"
+        ],
+        "x": 955,
+        "y": 520,
+        "wires": [
+            [
+                "ad5ef2bef9c4f903"
+            ]
+        ]
+    },
+    {
+        "id": "bac2703aa8612079",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "sid,name",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1530,
+        "y": 480,
+        "wires": [
+            [
+                "954b28a326e564db"
+            ]
+        ]
+    },
+    {
+        "id": "954b28a326e564db",
+        "type": "file",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "filename": "sensor_mapping.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1680,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b26af57cbfae62af",
+        "type": "inject",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Trigger every hour",
+        "props": [],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "",
+        "x": 1030,
+        "y": 660,
+        "wires": [
+            [
+                "bbdca72f9b830148"
+            ]
+        ]
+    },
+    {
+        "id": "ee63c463480893b6",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Converting data from db",
+        "func": "/**\n * We are getting data in this format:\n * {\n *  result: \"last_per_sensor\",\n *  _time: ISO time string\n *  _field: \"battery\" | \"voltage\"\n *  _value: number\n *  _sensorId: string\n * }\n * \n * Our output looks like so:\n * Array<{name: string, sensorId: number}> \n */\n\n/**\n * @typedef {Object.<string, string>} SidNameMap\n */\n\n/** @type{SidNameMap} */\nconst sensorMapping = flow.get(\"sensorMapping\");\n\nlet results = msg.payload;\n\nresults = results\n    .filter(item => item.sensorId !== \"\")\n    .reduce((acc, item, index) => {\n        if (!acc[`${item.sensorId}`]) {\n            acc[`${item.sensorId}`] = { name: sensorMapping[`${item.sensorId}`] ?? `Sensor ${item.sensorId}`, sensorId: item.sensorId};\n        }\n        return acc;\n    }, {});\n\nmsg.payload = Object.values(results)\n\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1470,
+        "y": 660,
+        "wires": [
+            [
+                "3a7f754f207a8730"
+            ]
+        ]
+    },
+    {
+        "id": "3a7f754f207a8730",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Find inactive sensors and remove them from sensorMapping",
+        "func": "/**\n * @typedef {Object} SensorEntry\n * @property {string} name - Der Name des Sensors.\n * @property {string} sensorId - Die ID des Sensors.\n */\n\n/**\n * @typedef {Object.<string, string>} SidNameMap\n */\n\n/** @type {SensorEntry[]} */\nconst activeSensorsWithinLastHour = msg.payload;\nconst activeSensorIds = activeSensorsWithinLastHour.map(entry => entry.sensorId);\n\n/** @type{SidNameMap} */\nconst sensorMapping = flow.get(\"sensorMapping\");\nconst knownSensorIds = Object.keys(sensorMapping);\n\n// collect inactive sensors for notifictaion\nconst inactiveSensors = knownSensorIds.filter(knownId => !activeSensorIds.includes(knownId))\n    .map(inactiveId => sensorMapping[inactiveId]);\n\n// copy only active sensors from sensorMapping\nconst newSensorMapping = {};\n\nfor (const sensorEntry of activeSensorsWithinLastHour) {\n    if (sensorMapping[sensorEntry.sensorId] !== undefined)\n        newSensorMapping[sensorEntry.sensorId] = sensorMapping[sensorEntry.sensorId];\n}\n\nflow.set(\"sensorMapping\", newSensorMapping);\n\nconst csvFormat = Object.keys(newSensorMapping).map((key) => ({\n    sid: key,\n    name: newSensorMapping[key]\n})\n);\n\nreturn [{payload: csvFormat}, { payload: inactiveSensors }];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1800,
+        "y": 660,
+        "wires": [
+            [
+                "a235577cc3a329d1"
+            ],
+            [
+                "c6f36eb71ad01fb8"
+            ]
+        ]
+    },
+    {
+        "id": "85ce820fa02355af",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Prepare new sensor message",
+        "func": "/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number} latitude\n * @prop {number} longitude\n */\n\n/** @type {SensorData} */\nconst sensorData = msg.payload;\nconst chatIds = flow.get(\"telegramChatIds\") || [];\n\n\nconst messages = [];\n\nfor (const chat of chatIds) {\n    const chatId = chat.chatId;\n\n    // Textnachricht\n    messages.push({\n        payload: {\n            chatId,\n            type: \"message\",\n            content: `🥳 *Neuer Sensor*: Ein neuer Sensor meldet erstmalig ${sensorData.voltage} Volt!`,\n            options: {\n                parse_mode: \"Markdown\"\n            }\n        }\n    });\n\n    if (sensorData.latitude !== undefined && sensorData.longitude !== undefined) {\n        // Standortnachricht\n        messages.push({\n            payload: {\n                chatId,\n                type: \"location\",\n                content: {\n                    latitude: sensorData.latitude,\n                    longitude: sensorData.longitude\n                }\n            }\n        });\n    }\n\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1610,
+        "y": 560,
+        "wires": [
+            [
+                "c57abbf2c728e4db"
+            ]
+        ]
+    },
+    {
+        "id": "a235577cc3a329d1",
+        "type": "csv",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "spec": "rfc",
+        "sep": ";",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "sid,name",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 2330,
+        "y": 620,
+        "wires": [
+            [
+                "e13ed8041bfb8df1"
+            ]
+        ]
+    },
+    {
+        "id": "e13ed8041bfb8df1",
+        "type": "file",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "filename": "sensor_mapping.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 2480,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c6f36eb71ad01fb8",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "Prepare lost connection to sensor message",
+        "func": "/** @type {String[]} */\nconst inactiveSensorNames = msg.payload;\nif (inactiveSensorNames.length === 0) return;\n\nconst chatIds = global.get(\"telegramChatIds\") || [];\n\nconst messages = [];\nfor (const chat of chatIds) {\n    const chatId = chat.chatId;\n\n    const multiple = inactiveSensorNames.length > 1;\n\n    // Textnachricht\n    messages.push({\n        payload: {\n            chatId,\n            type: \"message\",\n            content: `⚠️ *Warnung*: ${multiple ? \"Die Sensoren\" : \"Der Sensor\"} ${inactiveSensorNames.map(s => `*${s}*`).join(\", \")} ${multiple ? \"melden\" : \"meldet\"} sich seit einer Stunde nicht und ${multiple ? \"wurden\" : \"wurde\"} aus dem System entfernt!`,\n            options: {\n                parse_mode: \"Markdown\"\n            }\n        }\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2250,
+        "y": 700,
+        "wires": [
+            [
+                "01f69d6db0f1e000"
+            ]
+        ]
+    },
+    {
+        "id": "5edb3cd6fde94944",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "Prepare select sensor message",
+        "func": "/**\n * @typedef {Object.<string, string>} SidNameMap\n */\n\n/** @type{SidNameMap} */\nconst sensorMapping = flow.get(\"sensorMapping\");\nconst sensorIds = Object.keys(sensorMapping);\n\nmsg.payload = {\n    chatId: msg.payload.chatId,\n    type: \"message\",\n    content: \"Welcher Sensor soll seinen Standort updaten? Die Antwort des Sensors kann bis zu 10 Minuten dauern.\",\n    options: {\n        reply_markup: {\n            inline_keyboard: sensorIds.map(sensorId => [({ text: sensorMapping[sensorId], callback_data: `location_update_${sensorId}` })])\n        }\n    }\n}\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 1360,
+        "wires": [
+            [
+                "ddf81738dfadce8a"
+            ]
+        ]
+    },
+    {
+        "id": "c41364eb4745d67a",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "Prepare mqtt message",
+        "func": "node.warn(msg);\nif (!msg.payload.content.startsWith(\"location_update_\")) {\n    node.warn(\"Callback not for this node!\");\n    return;\n}\n\n// callback_query enthält die Auswahl\nconst sensorId = msg.payload.content.replace(\"location_update_\", \"\");\nif(sensorId === \"\" || sensorId === msg.payload.content) return;\n\nconst payload = \"\";\nconst topic = `fence_sensor/update/location/${sensorId}`;\nconst qos = 2;\nconst retain = true;\n\nlet locationRequestQueue = flow.get(\"locationRequestQueue\") || [];\nlocationRequestQueue.push({\n    sensorId,\n    chatId: msg.payload.chatId\n});\n\nconst uniqueMap = new Map();\nlocationRequestQueue.forEach(item => {\n    const key = `${item.sensorId}-${item.chatId}`;\n    uniqueMap.set(key, item);\n});\n\nconst uniqueQueue3 = Array.from(uniqueMap.values());\n\nflow.set(\"locationRequestQueue\", locationRequestQueue);\n\nreturn {\n    payload,\n    topic,\n    qos,\n    retain\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 1420,
+        "wires": [
+            [
+                "ce8de2a62caea539"
+            ]
+        ]
+    },
+    {
+        "id": "ce8de2a62caea539",
+        "type": "mqtt out",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "Update location",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "f0688d62e77df5ee",
+        "x": 480,
+        "y": 1420,
+        "wires": []
+    },
+    {
+        "id": "97c5c0986e15f4e6",
+        "type": "function",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "Store location and prepare message",
+        "func": "\n/**\n * @typedef {Object} RawSensorData\n * @prop {number} sid\n * @prop {number} lon\n * @prop {number} lat\n */\n\n/**\n * @typedef {Object} SensorData\n * @prop {string} id\n * @prop {string} name\n * @prop {number} voltage\n * @prop {number} battery\n * @prop {number | undefined} latitude\n * @prop {number | undefined} longitude\n */\n\n/** @type{SensorData} */\nconst sensorData = msg.payload\n\nif (sensorData.latitude == undefined || sensorData.longitude == undefined) return;\n\n/** @type{RawSensorData} */\nconst location = {\n    sid: sensorData.id,\n    lon: sensorData.longitude,\n    lat: sensorData.latitude\n}\n\nlet locations = flow.get(\"sensorLocations\") || [];\nlocations = locations\n    // remove entry with id of this measurement\n    .filter(l => l.sid != location.sid)\n    // filter duplicates\n    .filter((item, index, self) =>\n        index === self.findIndex((el) => el.sid === item.sid)\n    );\nlocations.push(location);\nflow.set(\"sensorLocations\", locations);\n\n/**\n * @typedef {Object.<string, string>} SidNameMap\n */\n\n/** @type{SidNameMap} */\nconst sensorMapping = flow.get(\"sensorMapping\");\nconst sensorIds = Object.keys(sensorMapping);\n\nconst locationRequestQueue = flow.get(\"locationRequestQueue\") || [];\nconst requests = locationRequestQueue.filter(request => request.sensorId === location.sid.toString());\nconst updatedLocationRequestQueue = locationRequestQueue.filter(r => r.sensorId !== location.sid.toString());\nflow.set(\"locationRequestQueue\", updatedLocationRequestQueue);\n\nnode.warn(locationRequestQueue);\nnode.warn(requests);\nnode.warn(updatedLocationRequestQueue);\n\nconst messages = [];\n\nfor (const request of requests) {\n    const name = sensorMapping[request.sensorId];\n\n    messages.push({\n        payload: {\n            chatId: request.chatId,\n            type: \"message\",\n            content: `📍 *Standort*: ${name} hat seinen Standort mitgeteilt!`,\n            options: {\n                parse_mode: \"Markdown\"\n            }\n        }\n    });\n    messages.push({\n        payload: {\n            chatId: request.chatId,\n            type: \"location\",\n            content: {\n                latitude: location.lat,\n                longitude: location.lon\n            }\n        }\n    });\n    \n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 1480,
+        "wires": [
+            [
+                "1a2d990c59acec71"
+            ]
+        ]
+    },
+    {
+        "id": "8e4c7467eb39b8a3",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "Request sensor to update location",
+        "info": "",
+        "x": 180,
+        "y": 1300,
+        "wires": []
+    },
+    {
+        "id": "dd4d5f2ec0dd5133",
+        "type": "comment",
+        "z": "6548b2f946473cd1",
+        "g": "16a23d5a90c34581",
+        "name": "Read sensor loactions into memory on startup",
+        "info": "",
+        "x": 1110,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "857a5c3c74b244a6",
+        "type": "mqtt out",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "",
+        "topic": "fence_sensor/measure/threshold",
+        "qos": "2",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "f0688d62e77df5ee",
+        "x": 620,
+        "y": 1220,
+        "wires": []
+    },
+    {
+        "id": "069b7bdc84eda732",
+        "type": "link in",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "link in 3",
+        "links": [
+            "87d9b7def2fbf4d9"
+        ],
+        "x": 95,
+        "y": 1480,
+        "wires": [
+            [
+                "97c5c0986e15f4e6"
+            ]
+        ]
+    },
+    {
+        "id": "e6409a0adf36ed59",
+        "type": "telegram command",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "Overview command",
+        "command": "/overview",
+        "description": "Übersicht über alle Sensoren",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "0d6d4f02a6c1cf03",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 130,
+        "y": 360,
+        "wires": [
+            [
+                "efd0c715f1ce571a"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "38708dbba2b950d5",
+        "type": "telegram command",
+        "z": "6548b2f946473cd1",
+        "g": "f98d045bccf299f6",
+        "name": "",
+        "command": "/start",
+        "description": "Registriere dich für Benachrichtigungen",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "0d6d4f02a6c1cf03",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 90,
+        "y": 180,
+        "wires": [
+            [
+                "a7bad77c66b1e123"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "250d18b4a92dc24c",
+        "type": "telegram command",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Rename sensor",
+        "command": "/rename",
+        "description": "Sensornamen ändern",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "0d6d4f02a6c1cf03",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 120,
+        "y": 640,
+        "wires": [
+            [
+                "f18a36f136a27cd8"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "3c636b4267517804",
+        "type": "telegram command",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "",
+        "command": "/threshold",
+        "description": "Spannungs-Schwellenwert einstellen",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "0d6d4f02a6c1cf03",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 100,
+        "y": 1120,
+        "wires": [
+            [
+                "check_command"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "a313085cc650e3aa",
+        "type": "telegram command",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "",
+        "command": "/location",
+        "description": "Standortabfrage an den Sensor schicken",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "0d6d4f02a6c1cf03",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 100,
+        "y": 1360,
+        "wires": [
+            [
+                "5edb3cd6fde94944"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "d91840d16cb6c106",
+        "type": "telegram event",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "Rename callback",
+        "bot": "0d6d4f02a6c1cf03",
+        "event": "callback_query",
+        "autoanswer": false,
+        "x": 120,
+        "y": 800,
+        "wires": [
+            [
+                "6fb93fcff0364fc8"
+            ]
+        ]
+    },
+    {
+        "id": "98dd8fc7a836081a",
+        "type": "telegram event",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "event": "callback_query",
+        "autoanswer": false,
+        "x": 120,
+        "y": 1200,
+        "wires": [
+            [
+                "save-threshold"
+            ]
+        ]
+    },
+    {
+        "id": "c731ef1ab87f131c",
+        "type": "telegram event",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "event": "callback_query",
+        "autoanswer": false,
+        "x": 120,
+        "y": 1420,
+        "wires": [
+            [
+                "c41364eb4745d67a"
+            ]
+        ]
+    },
+    {
+        "id": "5fb2b6f0905f943a",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "f98d045bccf299f6",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 480,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f07e8ce8970320a6",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 580,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "54666fc6e6afa11a",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 760,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1095b0975985cda9",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 740,
+        "y": 800,
+        "wires": [
+            [
+                "35f31bb767742d9f"
+            ]
+        ]
+    },
+    {
+        "id": "a751d5e1b9d3ad38",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 740,
+        "y": 880,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "961dce459ea25d86",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1380,
+        "y": 920,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "telegram-sender",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "41adbb80255510b5",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 540,
+        "y": 1160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "01f69d6db0f1e000",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 2500,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c57abbf2c728e4db",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1820,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1a2d990c59acec71",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 660,
+        "y": 1480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ddf81738dfadce8a",
+        "type": "telegram sender",
+        "z": "6548b2f946473cd1",
+        "g": "380df0ceff6ce4df",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 520,
+        "y": 1360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "35f31bb767742d9f",
+        "type": "telegram reply",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "name": "",
+        "bot": "0d6d4f02a6c1cf03",
+        "x": 140,
+        "y": 880,
+        "wires": [
+            [
+                "cfcf6aa70205ce83"
+            ]
+        ]
+    },
+    {
+        "id": "66a6ffac5c689316",
+        "type": "influxdb out",
+        "z": "6548b2f946473cd1",
+        "g": "ab8170eb4fc828b0",
+        "influxdb": "4a0a18168f13867e",
+        "name": "Store voltage",
+        "measurement": "voltage",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "s",
+        "retentionPolicyV18Flux": "",
+        "org": "agroTech",
+        "bucket": "fence",
+        "x": 1930,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "fa447f3f3b261c02",
+        "type": "influxdb in",
+        "z": "6548b2f946473cd1",
+        "g": "25e80b1ae6b4a337",
+        "influxdb": "4a0a18168f13867e",
+        "name": "Query sensor data from DB",
+        "query": "from(bucket: \"fence\")\n  |> range(start: -48h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"voltage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"battery\" or r[\"_field\"] == \"voltage\")\n  |> group(columns: [\"sensorId\", \"_field\"])\n  |> last()\n  |> group()\n  |> yield(name: \"last_per_sensor\")",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "agroTech",
+        "x": 620,
+        "y": 360,
+        "wires": [
+            [
+                "befbacd123b8188a"
+            ]
+        ]
+    },
+    {
+        "id": "87b65768a152af16",
+        "type": "influxdb in",
+        "z": "6548b2f946473cd1",
+        "g": "24db616b7eca5bdc",
+        "influxdb": "4a0a18168f13867e",
+        "name": "Query sensor data from DB",
+        "query": "from(bucket: \"fence\")\n  |> range(start: -48h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"voltage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"battery\" or r[\"_field\"] == \"voltage\")\n  |> group(columns: [\"sensorId\", \"_field\"])\n  |> last()\n  |> group()\n  |> yield(name: \"last_per_sensor\")",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "agroTech",
+        "x": 700,
+        "y": 640,
+        "wires": [
+            [
+                "fd892023790d83ea"
+            ]
+        ]
+    },
+    {
+        "id": "10e6833c61c04ba9",
+        "type": "influxdb in",
+        "z": "6548b2f946473cd1",
+        "g": "7464c70ebe8b0527",
+        "influxdb": "4a0a18168f13867e",
+        "name": "Query sensor data from DB",
+        "query": "from(bucket: \"fence\")\n  |> range(start: -48h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"voltage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"battery\" or r[\"_field\"] == \"voltage\")\n  |> group(columns: [\"sensorId\", \"_field\"])\n  |> last()\n  |> group()\n  |> yield(name: \"last_per_sensor\")",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "agroTech",
+        "x": 1420,
+        "y": 860,
+        "wires": [
+            [
+                "bff05958800d04f3"
+            ]
+        ]
+    },
+    {
+        "id": "bbdca72f9b830148",
+        "type": "influxdb in",
+        "z": "6548b2f946473cd1",
+        "g": "ce98130f88f58852",
+        "influxdb": "4a0a18168f13867e",
+        "name": "Query sensor data from DB",
+        "query": "from(bucket: \"fence\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"voltage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"battery\" or r[\"_field\"] == \"voltage\")\n  |> group(columns: [\"sensorId\", \"_field\"])\n  |> last()\n  |> group()\n  |> yield(name: \"last_per_sensor\")",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "agroTech",
+        "x": 1240,
+        "y": 660,
+        "wires": [
+            [
+                "ee63c463480893b6"
+            ]
+        ]
+    },
+    {
+        "id": "f0688d62e77df5ee",
+        "type": "mqtt-broker",
+        "name": "Mosquitto (Lokal)",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "0d6d4f02a6c1cf03",
+        "type": "telegram bot",
+        "botname": "FenceBot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": true
+    },
+    {
+        "id": "4a0a18168f13867e",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "Lokal",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    }
+]
