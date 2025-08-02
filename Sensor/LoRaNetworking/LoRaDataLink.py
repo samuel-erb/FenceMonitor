@@ -22,6 +22,7 @@ LORA_DATALINK_MODE_GATEWAY = const(1)
 LORA_DATALINK_MODE = LORA_DATALINK_MODE_SENSOR
 
 CAD_TIMEOUT = const(200)
+DUTY_CYCLE_PERCENT = const(10) # 434 MHz 10%; 868 MHz 1%
 
 # Konstanten für Längen
 # 6 Bytes für Sensor-Adresse und 1 Byte für DataFrameType
@@ -147,7 +148,7 @@ class LoRaDataLink(Singleton):
 
     __slots__ = ('mode', 'sensor_address', '_driver', '_receiveQueue', '_transmitQueue', '_duty_cycle_timer',
                  '_transmit_time', 'sockets', 'listening_sockets', '_transmission_block',
-                 '_duty_cycle_message_displayed', '_busy_timeout_retries', '_will_irq', '_rx_packet')
+                 '_duty_cycle_message_displayed', 'duty_cycle_budget_ms', '_busy_timeout_retries', '_will_irq', '_rx_packet')
 
     def _init_once(self, **kwargs):
         self.mode = LORA_DATALINK_MODE
@@ -166,6 +167,7 @@ class LoRaDataLink(Singleton):
         self._duty_cycle_timer = time.ticks_ms()  # Wird jede Stunde auf die aktuelle Zeit gesetzt
         self._transmit_time = 0  # Enthält die kumulierte Sendezeit
         self._duty_cycle_message_displayed = False
+        self.duty_cycle_budget_ms = 3_600_000 # Duty cycle budget in millisekunden
         self._transmission_block = False  # Einfaches Lock um die Kommunikation zu pausieren
         self._busy_timeout_retries = 0  # Zähler für Busy-Timeout Fehler
         self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None) # Starte kontinuierlichen Empfang
@@ -197,14 +199,14 @@ class LoRaDataLink(Singleton):
         # Holt die verbleibende Zeit der aktuellen Duty Cycle Periode in Millisekunden
         # bzw. setzt die Zeit sowie die Übertragungszeit zurück, wenn eine Stunde vergangen ist
         remaining_cycle_time = self._get_remaining_duty_cycle_time_reset_timer_if_necessary()
-        if self.mode == LORA_DATALINK_MODE_GATEWAY and self._transmit_time > 36_000: # Gateways gehen nicht in den Schlafmodus aber dürfen nicht mehr senden.
+        if self.mode == LORA_DATALINK_MODE_GATEWAY and self._transmit_time > self.duty_cycle_budget_ms: # Gateways gehen nicht in den Schlafmodus aber dürfen nicht mehr senden.
             if not self._duty_cycle_message_displayed:
-                _log(f'Reached duty cycle budget of 36 seconds per hour. Stop sending messages for the next {remaining_cycle_time} ms...', LOGLEVEL_INFO)
+                _log(f'Reached duty cycle budget of {self.self.duty_cycle_budget_ms/1000} seconds per hour. Stop sending messages for the next {remaining_cycle_time} ms...', LOGLEVEL_INFO)
                 self._duty_cycle_message_displayed = True
             return  # Überspringe das Senden aber empfange weiterhin
         # Sensoren gehen in den Schlafmodus
-        elif self._transmit_time > 36_000: # Gerät is Sensor und hat mehr als 36 Sekunden in der letzten Stunde gesendet
-            _log(f'Reached duty cycle budget of 36 seconds per hour. Sleeping for {remaining_cycle_time} ms...', LOGLEVEL_INFO)
+        elif self._transmit_time > self.duty_cycle_budget_ms: # Gerät ist Sensor und hat mehr als das duty cycle budget in der letzten Stunde gesendet
+            _log(f'Reached duty cycle budget of {self.self.duty_cycle_budget_ms/1000} seconds per hour. Sleeping for {remaining_cycle_time} ms...', LOGLEVEL_INFO)
             try:
                 import App.LightSleepManager
                 LightSleepManager().sleep(remaining_cycle_time, force=True)
