@@ -284,6 +284,16 @@ class LoRaDataLink(Singleton):
                     if state is None:
                         state = SensorState(lora_dataframe.address)
                     state.last_communication = time.ticks_ms()
+                    # Timer weiter
+                    for socket_id in state.socket_ids:
+                        socket = None  # type: LoRaTCP
+                        for sock in self.sockets:  # type: LoRaTCP
+                            if sock.tcb.socket_id == socket_id:
+                                socket = sock
+                        if socket is not None:
+                            _log("Sensor became active. Telling TCP socket", LOGLEVEL_INFO)
+                            socket.continue_timer()
+
 
         except ValueError as e:
             _log(f'Received ValueError: {e}', LOGLEVEL_WARNING)
@@ -378,6 +388,15 @@ class LoRaDataLink(Singleton):
                     f"Cannot add packet to DataLinkQueue because we dont hava a socket record for this socket-id: {socket_id}")
             lora_dataframe = LoRaDataFrame(state.sensor_address, LoRaTCP_Segment, data)
             self._transmitQueue.put_sync(lora_dataframe)
+            if not state.is_active():
+                # TCP mitteilen das Sensor inaktiv ist
+                socket = None # type: LoRaTCP
+                for sock in self.sockets:  # type: LoRaTCP
+                    if sock.tcb.socket_id == socket_id:
+                        socket = sock
+                if socket is not None:
+                    _log("Sensor became inactive. Telling TCP socket", LOGLEVEL_INFO)
+                    socket.pause_timer()
         else:
             lora_dataframe = LoRaDataFrame(self.sensor_address, LoRaTCP_Segment, data)
             self._transmitQueue.put_sync(lora_dataframe)
