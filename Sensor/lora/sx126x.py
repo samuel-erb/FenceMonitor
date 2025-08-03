@@ -91,7 +91,6 @@ _REG_EVT_CLR_MASK = const(0x02)
 
 # IRQs the driver cares about when receiving
 _IRQ_DRIVER_RX_MASK = const(_IRQ_RX_DONE | _IRQ_TIMEOUT | _IRQ_CRC_ERR | _IRQ_HEADER_ERR)
-_IRQ_DRIVER_CAD_MASK = const(_IRQ_CAD_DONE | _IRQ_CAD_DETECTED | _IRQ_TIMEOUT)
 
 
 # Except when entering/waking from sleep, typical busy period <105us (ref RM0453 Table 33)

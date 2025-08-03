@@ -4,6 +4,8 @@ Based on Semtech SX1276/77/78/79 Datasheet Rev 7
 
 This file contains the configuration parameters for the SX1276/77/78/79 LoRa modem.
 """
+from micropython import const
+
 from machine import Pin, SPI
 
 from config import hardware_config
@@ -138,19 +140,25 @@ def configure_modem() -> SX1262:
     LoRa_BUSY = Pin(20)
     DIO1 = Pin(16)
 
+    CAD_ON_1_SYMB = const(0x00)  # Verwende 1 Symbol für Channel Activity Detection
+    CAD_ON_2_SYMB = const(0x01)  # Verwende 2 Symbol für Channel Activity Detection
+    CAD_ON_4_SYMB = const(0x02)  # Verwende 4 Symbol für Channel Activity Detection
+    CAD_ON_8_SYMB = const(0x03)  # Verwende 8 Symbol für Channel Activity Detection
+    CAD_ON_16_SYMB = const(0x04)  # Verwende 6 Symbol für Channel Activity Detection
+
+
     modem = SX1262(
             spi=spi, cs=LoRa_NSS, busy=LoRa_BUSY, dio1=DIO1, reset=LoRa_RST,
             lora_cfg=lora_cfg
         )
 
     modem.configure_cad(
-        cad_symbol_num=2,    # 2 Symbole für Detection
+        cad_symbol_num=CAD_ON_2_SYMB,    # 2 Symbole für Detection
         cad_detect_peak=22,  # Peak-Schwelle
         cad_detect_min=10,   # Min-Schwelle
-        cad_exit_mode=1,     # Nach CAD zu Receive
-        cad_timeout=128      # cad_timeout × 15.625 µs
+        cad_exit_mode=1      # Nach CAD zu Receive
     )
-    
+
     return modem
 
 def diagnose_lora(lora_modem: SX1262):

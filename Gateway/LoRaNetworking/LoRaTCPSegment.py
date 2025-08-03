@@ -84,24 +84,17 @@ class Seq(int):
         return Seq((int(self) - int(other) + SEQ_HALF) % SEQ_MOD - SEQ_HALF)
 
 class LoRaTCPSegment:
-    """
-    +------------+------------+------------+------------+------------+------------+
-    | Socket-ID  |  Flags     |     Seq (2 Byte)       |     Ack (2 Byte)         |
-    +------------+------------+------------+------------+------------+------------+
-    |                             Payload (beliebig lang)                         |
-    +-----------------------------------------------------------------------------+
-    """
 
-    # Struct-Format: B (1 Byte Socket-ID), B (1 Byte Flags), H (2 Byte Seq), H (2 Byte Ack)
-    _STRUCT_FORMAT = ">BBHH"
+    # Struct-Format: B (1 Byte Socket-ID and flags), H (2 Byte Seq), H (2 Byte Ack)
+    _STRUCT_FORMAT = ">BHH"
     _HEADER_SIZE = struct.calcsize(_STRUCT_FORMAT)
 
     __slots__ = ('socket_id', 'syn_flag', 'ack_flag', 'fin_flag', 'rst_flag', 'seq', 'ack', 'payload')
 
     def __init__(self, socket_id: int, seq: Seq, ack: Seq = Seq(0x0), syn_flag: bool = False, ack_flag: bool = True,
                  fin_flag: bool = False, rst_flag: bool = False, payload: bytes = b''):
-        if not (0 <= socket_id <= 255):
-            raise ValueError("Socket-ID must be between 0 and 255")
+        if not (0 <= socket_id <= 15):
+            raise ValueError("Socket-ID must be between 0 and 15")
         self.socket_id = socket_id
         self.syn_flag = syn_flag
         self.ack_flag = ack_flag
@@ -118,8 +111,11 @@ class LoRaTCPSegment:
         if len(data) < cls._HEADER_SIZE:
             raise ValueError("Segment too short")
 
-        # Unpack Header (1B socket_id, 1B flags, 2B seq, 2B ack)
-        socket_id, flags_byte, seq, ack = struct.unpack(">BBHH", data[:6])
+        # Unpack Header (1B socket_id_flags, 2B seq, 2B ack)
+        socket_id_flag_byte, seq, ack = struct.unpack(cls._STRUCT_FORMAT, data[:5])
+
+        socket_id = (socket_id_flag_byte & 0xF0) >> 4
+        flags_byte = socket_id_flag_byte & 0x0F
 
         # Extract flags
         syn_flag = bool(flags_byte & 0b0001)
@@ -128,7 +124,7 @@ class LoRaTCPSegment:
         rst_flag = bool(flags_byte & 0b1000)
 
         # Payload
-        payload = data[6:]
+        payload = data[5:]
 
         return cls(socket_id, seq=Seq(seq), ack=Seq(ack),
                    syn_flag=syn_flag, ack_flag=ack_flag,
@@ -138,9 +134,10 @@ class LoRaTCPSegment:
     def to_bytes(self) -> bytes:
         # Flags zusammenbauen
         flags = (self.syn_flag << 0) | (self.ack_flag << 1) | (self.fin_flag << 2) | (self.rst_flag << 3)
+        socket_id_flag_byte = ((self.socket_id & 0x0F) << 4) | flags
 
         # Pack Header
-        header = struct.pack(">BBHH", self.socket_id, flags, int(self.seq), int(self.ack))
+        header = struct.pack(self._STRUCT_FORMAT, socket_id_flag_byte, int(self.seq), int(self.ack))
 
         return header + self.payload
 
@@ -157,7 +154,7 @@ class LoRaTCPSegment:
         flags_str = "|".join(flags) if flags else "NONE"
 
         return (f"<LoRaTCPSegment "
-                f"socket_id=0x{self.socket_id:012X}, "
+                f"socket_id=0x{self.socket_id}, "
                 f"flags={flags_str}, "
                 f"seq={self.seq}, "
                 f"ack={self.ack}, "

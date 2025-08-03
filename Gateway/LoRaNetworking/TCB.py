@@ -30,7 +30,6 @@ def _log(message: str, loglevel=LOGLEVEL_DEBUG):
         print(f"[TCB] \033[31mError: {message}\033[0m")
 
 class TCB:
-    # TODO __slots__
     INSTANCES = list()
     SOCKET_ID_COUNTER = 0
 
@@ -60,7 +59,7 @@ class TCB:
     def __init__(self, remote_ip, remote_port):
         self.remote_ip = remote_ip
         self.remote_port = remote_port
-        self.socket_id = random.randint(0, 255) # TCB.SOCKET_ID_COUNTER
+        self.socket_id = random.randint(0, 15) # TCB.SOCKET_ID_COUNTER
         TCB.SOCKET_ID_COUNTER += 1
         self.active_open = True
 

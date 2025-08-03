@@ -91,7 +91,6 @@ _REG_EVT_CLR_MASK = const(0x02)
 
 # IRQs the driver cares about when receiving
 _IRQ_DRIVER_RX_MASK = const(_IRQ_RX_DONE | _IRQ_TIMEOUT | _IRQ_CRC_ERR | _IRQ_HEADER_ERR)
-_IRQ_DRIVER_CAD_MASK = const(_IRQ_CAD_DONE | _IRQ_CAD_DETECTED | _IRQ_TIMEOUT)
 
 
 # Except when entering/waking from sleep, typical busy period <105us (ref RM0453 Table 33)
@@ -527,11 +526,12 @@ class _SX126x(BaseModem):
             raise ConfigError("cad_symbol_num must be 1-4")
 
         # CAD Parameter setzen
-        self._cmd("BBBBB", _CMD_SET_CAD_PARAMS,
+        self._cmd("BBBBBH", _CMD_SET_CAD_PARAMS,
                   cad_symbol_num,
                   cad_detect_peak,
                   cad_detect_min,
-                  cad_exit_mode)
+                  cad_exit_mode,
+                  cad_timeout)
 
     def start_cad(self, timeout_ms=None):
         """

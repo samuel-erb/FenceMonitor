@@ -136,6 +136,11 @@ class LoRaDataFrame:
         type_name = DATAFRAME_TYPE.get(self.data_type, "Unknown")
         return f"<LoRaDataFrame address={self.address.hex()} type={type_name} payload_len={len(self.payload)}>"
 
+def get_socket_id_from_frame(segment_bytes: bytes) -> int:
+    socket_id_flag_byte = segment_bytes[0]
+    socket_id = (socket_id_flag_byte & 0xF0) >> 4
+    return socket_id
+
 
 class LoRaDataLink(Singleton):
     """
@@ -247,7 +252,7 @@ class LoRaDataLink(Singleton):
                 if lora_dataframe.data_type == LoRaTCP_Segment:
                     # Weil wir keine Ports benutzen müsen wir die Socket-ID auslesen und
                     # den Dataframe dem richtigen Socket zuordnen
-                    socket_id = lora_dataframe.payload[0]
+                    socket_id = get_socket_id_from_frame(lora_dataframe.payload)
                     socket = None
                     for sock in self.sockets:  # type: LoRaTCP
                         if sock.tcb.socket_id == socket_id:
@@ -366,7 +371,7 @@ class LoRaDataLink(Singleton):
         Das erste Byte wird als Socket-ID interpretiert.
         """
         if self.mode == LORA_DATALINK_MODE_GATEWAY:
-            socket_id = data[0]
+            socket_id = get_socket_id_from_frame(data)
             state = SensorState.get_by_socket_id(socket_id)
             if state is None:
                 raise RuntimeError(
@@ -411,4 +416,3 @@ class LoRaDataLink(Singleton):
     def prepare_for_sleep(self):
         self._transmission_block = True
         self._driver.standby()
-        time.sleep(10)
