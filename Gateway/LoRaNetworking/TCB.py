@@ -53,7 +53,7 @@ class TCB:
                  'reassembled_data_lock',
                  'receive_buffer', 'reassembled_data', 'send_buffer', 'send_buffer_lock', 'MSL_TIMEOUT_MS', 'fin_seq',
                  'snd_una', 'snd_nxt',
-                 'rcv_nxt', 'iss', 'irs', '_close_wait_timer'
+                 'rcv_nxt', 'iss', 'irs', '_close_wait_timer', 'timer_paused'
                  )
 
     def __init__(self, remote_ip, remote_port):
@@ -68,6 +68,7 @@ class TCB:
         self.user_timeout_timer = None
         self.retransmission_timeout_timer = None
         self._close_wait_timer = None
+        self.timer_paused = False
 
         self.snd_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Sende-Fensters
         self.rcv_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Empfangs-Fensters

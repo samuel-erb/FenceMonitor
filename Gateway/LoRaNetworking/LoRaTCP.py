@@ -629,7 +629,8 @@ class LoRaTCP:
                 _log(f"Sent {segments_sent} segments from send buffer", LOGLEVEL_INFO)
 
         # Check timers
-        self._check_retransmission_timer()
+        if self.tcb.timer_paused:
+            self._check_retransmission_timer()
         self._check_time_wait_timer()
         # _log(f"Run method completed: processed={processed_frames} frames, sent={segments_sent} segments", LOGLEVEL_DEBUG)
 
@@ -1478,7 +1479,7 @@ class LoRaTCP:
         return peer
 
     def pause_timer(self):
-        self.tcb.cancel_all_timers()
+        self.tcb.timer_paused = True
 
     def continue_timer(self):
-        self.tcb.start_retransmission_timeout_timer()
+        self.tcb.timer_paused = False
