@@ -629,7 +629,7 @@ class LoRaTCP:
                 _log(f"Sent {segments_sent} segments from send buffer", LOGLEVEL_INFO)
 
         # Check timers
-        if self.tcb.timer_paused:
+        if not self.tcb.timer_paused:
             self._check_retransmission_timer()
         self._check_time_wait_timer()
         # _log(f"Run method completed: processed={processed_frames} frames, sent={segments_sent} segments", LOGLEVEL_DEBUG)
