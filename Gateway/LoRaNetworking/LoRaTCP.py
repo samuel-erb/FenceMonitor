@@ -1477,7 +1477,7 @@ class LoRaTCP:
         _log(f"getpeername called: {peer}", LOGLEVEL_DEBUG)
         return peer
 
-    def stop_timer(self):
+    def pause_timer(self):
         self.tcb.cancel_all_timers()
 
     def continue_timer(self):
