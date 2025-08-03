@@ -1,6 +1,4 @@
 import _thread
-import threading
-
 import time
 
 from .LoRaDataLink import LoRaDataLink

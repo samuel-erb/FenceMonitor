@@ -2,8 +2,6 @@ import _thread
 
 import time
 
-import machine
-
 from .LoRaDataLink import LoRaDataLink
 from .LoRaTCP import LoRaTCP
 from Singleton import Singleton

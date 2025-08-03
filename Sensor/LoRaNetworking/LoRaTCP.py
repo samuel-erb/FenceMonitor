@@ -430,11 +430,13 @@ class LoRaTCP:
         elif self.tcb.state in [TCB.STATE_FIN_WAIT_1, TCB.STATE_FIN_WAIT_2]:
             _log("connection closing", LOGLEVEL_ERROR)
         elif self.tcb.state == TCB.STATE_CLOSE_WAIT:
-            # Queue this request until all preceding SENDs have been segmentized; then send a FIN segment, enter CLOSING state.
-            _log("Closing from CLOSE_WAIT state: sending FIN segment", LOGLEVEL_DEBUG)
+            # Queue this request until all preceding SENDs have been segmentized; then send a FIN segment, enter LAST_ACK state.
+            _log("Closing from CLOSE_WAIT state: sending FIN segment and entering LAST_ACK", LOGLEVEL_DEBUG)
             self.send_segment(
                 LoRaTCPSegment(self.tcb.socket_id, seq=self.tcb.snd_nxt, ack=self.tcb.rcv_nxt, ack_flag=True,
                                fin_flag=True))
+            self.tcb.state = TCB.STATE_LAST_ACK
+            _log(f"State changed to LAST_ACK", LOGLEVEL_INFO)
         elif self.tcb.state in [TCB.STATE_LAST_ACK, TCB.STATE_TIME_WAIT, TCB.STATE_CLOSING]:
             _log("connection closing", LOGLEVEL_ERROR)
 
@@ -594,6 +596,16 @@ class LoRaTCP:
 
         if processed_frames > 0:
             _log(f"Processed {processed_frames} incoming dataframes", LOGLEVEL_DEBUG)
+
+        # Auto-close connection if stuck in CLOSE_WAIT for too long
+        if self.tcb.state == TCB.STATE_CLOSE_WAIT:
+            if self.tcb._close_wait_timer is None:
+                self.tcb._close_wait_timer = time.ticks_ms()
+                _log("Started CLOSE_WAIT auto-close timer", LOGLEVEL_DEBUG)
+            elif time.ticks_diff(time.ticks_ms(), self.tcb._close_wait_timer) > 2000:  # 2 seconds
+                _log("Auto-closing connection after 2s in CLOSE_WAIT", LOGLEVEL_INFO)
+                self.close()
+                return
 
         segments_sent = 0
         if self.tcb.state in [TCB.STATE_ESTAB, TCB.STATE_CLOSE_WAIT, TCB.STATE_FIN_WAIT_1]:
@@ -1087,6 +1099,12 @@ class LoRaTCP:
             elif tcb.state == TCB.STATE_LAST_ACK:
                 _log("Processing ACK in LAST_ACK state", LOGLEVEL_DEBUG)
                 # The only thing that can arrive in this state is an acknowledgment of our FIN.
+                # Update snd_una first, then check if our FIN is now acknowledged
+                if tcb.is_ack_acceptable(seg.ack):
+                    _log(f"Updated snd_una: {tcb.snd_una} -> {seg.ack}", LOGLEVEL_DEBUG)
+                    tcb.snd_una = seg.ack
+                    tcb.remove_acknowledged_segments_from_retransmission_queue()
+
                 # If our FIN is now acknowledged, delete the TCB, enter the CLOSED state, and return.
                 if self.is_fin_acknowledged():
                     _log("FIN acknowledged in LAST_ACK state, closing connection", LOGLEVEL_INFO)

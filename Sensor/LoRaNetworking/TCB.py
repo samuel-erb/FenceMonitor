@@ -53,7 +53,7 @@ class TCB:
                  'reassembled_data_lock',
                  'receive_buffer', 'reassembled_data', 'send_buffer', 'send_buffer_lock', 'MSL_TIMEOUT_MS', 'fin_seq',
                  'snd_una', 'snd_nxt',
-                 'rcv_nxt', 'iss', 'irs'
+                 'rcv_nxt', 'iss', 'irs', '_close_wait_timer'
                  )
 
     def __init__(self, remote_ip, remote_port):
@@ -67,6 +67,7 @@ class TCB:
         self.time_wait_timer = None
         self.user_timeout_timer = None
         self.retransmission_timeout_timer = None
+        self._close_wait_timer = None
 
         self.snd_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Sende-Fensters
         self.rcv_wnd = LoRaTCP_MAX_PAYLOAD_SIZE  # Aktuelle größe des Empfangs-Fensters
@@ -170,11 +171,13 @@ class TCB:
         self.retransmission_timeout_timer = None
         self.user_timeout_timer = None
         self.time_wait_timer = None
+        self._close_wait_timer = None
 
     def delete(self):
         self.retransmission_timeout_timer = None
         self.user_timeout_timer = None
         self.time_wait_timer = None
+        self._close_wait_timer = None
         self.iss = Seq(random.getrandbits(16))  # type: Seq
         self.irs = None  # type: Seq
         self.remote_ip = None
