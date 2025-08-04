@@ -203,7 +203,8 @@ class LoRaDataLink(Singleton):
         if isinstance(self._rx, RxPacket) and len(self._rx) >= DATAFRAME_HEADER_LENGTH:
             self._handle_rx_packet(self._rx)
             self._rx = True
-            time.sleep_ms(100)
+            if self.mode == LORA_DATALINK_MODE_GATEWAY:
+                time.sleep_ms(100)
         # Holt die verbleibende Zeit der aktuellen Duty Cycle Periode in Millisekunden
         # bzw. setzt die Zeit sowie die Übertragungszeit zurück, wenn eine Stunde vergangen ist
         remaining_cycle_time = self._get_remaining_duty_cycle_time_reset_timer_if_necessary()
