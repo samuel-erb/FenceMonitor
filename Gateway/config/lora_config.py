@@ -63,7 +63,7 @@ IMPLICIT_HEADER = False
 # Options: 6, 7, 8, 9, 10, 11, 12
 # Higher SF = longer range, lower data rate, higher sensitivity
 # Note: SF6 requires implicit header mode
-SF = 11
+SF = 7
 
 # CRC generation on payload
 # True = Enable CRC generation and check on payload
