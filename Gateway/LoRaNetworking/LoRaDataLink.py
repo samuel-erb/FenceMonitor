@@ -14,7 +14,7 @@ LOGLEVEL_DEBUG = const(0)
 LOGLEVEL_INFO = const(1)
 LOGLEVEL_WARNING = const(2)
 LOGLEVEL_ERROR = const(3)
-DATALINK_LOG_LEVEL = const(LOGLEVEL_DEBUG)
+DATALINK_LOG_LEVEL = const(LOGLEVEL_INFO)
 
 # Betriebsmodus der DataLink Layer
 LORA_DATALINK_MODE_SENSOR = const(0)
@@ -234,6 +234,8 @@ class LoRaDataLink(Singleton):
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
                 self.send_counter += 1
+                _log(f"Statistic: send_counter={self.send_counter}, receive_counter={self.receive_counter}",
+                     LOGLEVEL_INFO)
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)
                 self._transmit_time += time_on_air
                 self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
@@ -243,9 +245,6 @@ class LoRaDataLink(Singleton):
                 self._transmitQueue.put_sync_left(lora_dataframe)
                 if "BUSY timeout" in str(e):
                     self._handle_busy_error()
-        if time.ticks_ms() % 10000 < 1000:
-            # Alle 10 Sekunden triggern
-            _log(f"Statistic: send_counter={self.send_counter}, receive_counter={self.receive_counter}", LOGLEVEL_INFO)
 
 
     def _handle_rx_packet(self, rx_packet):
@@ -285,6 +284,8 @@ class LoRaDataLink(Singleton):
 
                     socket.add_lora_dataframe_to_queue(lora_dataframe)
                     self.receive_counter += 1
+                    _log(f"Statistic: send_counter={self.send_counter}, receive_counter={self.receive_counter}",
+                         LOGLEVEL_INFO)
 
                 elif lora_dataframe.data_type == LoRaDataLink_Woke_Up and self.mode == LORA_DATALINK_MODE_GATEWAY:
                     state = SensorState.get_state_by_address(lora_dataframe.address)
@@ -301,6 +302,8 @@ class LoRaDataLink(Singleton):
                             _log("Sensor became active. Telling TCP socket", LOGLEVEL_INFO)
                             socket.continue_timer()
                     self.receive_counter += 1
+                    _log(f"Statistic: send_counter={self.send_counter}, receive_counter={self.receive_counter}",
+                         LOGLEVEL_INFO)
 
 
         except ValueError as e:
