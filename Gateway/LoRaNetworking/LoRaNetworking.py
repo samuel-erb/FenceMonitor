@@ -18,6 +18,7 @@ class LoRaNetworking(Singleton):
             for tcp in LoRaTCP.INSTANCES: # type: LoRaTCP
                 tcp.run()
             self.data_link.run()
+            time.sleep_ms(100)
         print("[LoRaNetworking] Networking thread stopped")
 
     def stop(self):
