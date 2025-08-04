@@ -632,7 +632,8 @@ class LoRaTCP:
                 _log(f"Sent {segments_sent} segments from send buffer", LOGLEVEL_INFO)
 
         # Check timers
-        self._check_retransmission_timer()
+        if not self.tcb.timer_paused:
+            self._check_retransmission_timer()
         self._check_time_wait_timer()
         # _log(f"Run method completed: processed={processed_frames} frames, sent={segments_sent} segments", LOGLEVEL_DEBUG)
 
@@ -1479,3 +1480,9 @@ class LoRaTCP:
         peer = (self.tcb.remote_ip, self.tcb.remote_port)
         _log(f"getpeername called: {peer}", LOGLEVEL_DEBUG)
         return peer
+
+    def pause_timer(self):
+        self.tcb.timer_paused = True
+
+    def continue_timer(self):
+        self.tcb.timer_paused = False

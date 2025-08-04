@@ -39,10 +39,8 @@ def mqtt_callback(topic, msg):
 async def main(mqtt_client: LoRaMQTTClient):
     print("[App] Starting")
     mqtt_client.set_callback(mqtt_callback)
-
     global location_should_update
     last_measurement_sent = None
-
     location_service = LocationService()
     sleep_manager = LightSleepManager(SLEEP_DURATION_MILLISECONDS)
     voltage_sensor = VoltageMeasurement()
@@ -52,7 +50,6 @@ async def main(mqtt_client: LoRaMQTTClient):
     mqtt_client.subscribe(MQTT_TOPIC_VOLTAGE_THRESHOLD)
     print("[App] Subscribing to topic " + MQTT_TOPIC_LOCATION_UPDATE.decode('utf-8'))
     mqtt_client.subscribe(MQTT_TOPIC_LOCATION_UPDATE)
-
 
     while True:
         print("[App] Measuring voltage...")
@@ -89,10 +86,11 @@ async def main(mqtt_client: LoRaMQTTClient):
             last_measurement_sent = time.ticks_ms()
         else:
             critical_voltage_before = False
-        print(f"[App] No location update requested, last measurement was sent within the last hour and the measured voltage is greater or equal the threshold {threshold_voltage} >= {voltage} -> going back to sleep without sending data to MQTT Broker")
+            print(f"[App] No location update requested, last measurement was sent within the last hour "
+                  f"and the measured voltage is greater or equal the threshold {threshold_voltage} >= {voltage} "
+                  f"-> going back to sleep without sending data to MQTT Broker")
         await asyncio.sleep(10)
-        #mqtt_client.disconnect()
-        #await sleep_manager.sleep()
+        await sleep_manager.sleep()
 
 def send_voltage_measurement(mqtt_client: LoRaMQTTClient, measurement: ApplicationData):
     print(f"[App] Sending measurement {measurement}")

@@ -153,7 +153,7 @@ class LoRaDataLink(Singleton):
 
     __slots__ = ('mode', 'sensor_address', '_driver', '_receiveQueue', '_transmitQueue', '_duty_cycle_timer',
                  '_transmit_time', 'sockets', 'listening_sockets', '_transmission_block',
-                 '_duty_cycle_message_displayed', 'duty_cycle_budget_ms', '_busy_timeout_retries', '_will_irq', '_rx_packet')
+                 '_duty_cycle_message_displayed', 'duty_cycle_budget_ms', '_busy_timeout_retries', '_will_irq', '_rx_packet', 'send_counter','receive_counter')
 
     def _init_once(self, **kwargs):
         self.mode = LORA_DATALINK_MODE
@@ -178,6 +178,8 @@ class LoRaDataLink(Singleton):
         self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None) # Starte kontinuierlichen Empfang
         self._rx = True
         self._rx_packet = None # Spart zusätzliche Speicher-Allokation für zukünftige Dataframes
+        self.send_counter = 0
+        self.receive_counter = 0
 
     def register_listening_socket(self, socket: "LoRaTCP"):
         if self.mode == LORA_DATALINK_MODE_SENSOR:
@@ -231,6 +233,7 @@ class LoRaDataLink(Singleton):
                 _log("CAD result clear. Starting to send...", LOGLEVEL_INFO)
                 start = time.ticks_ms()
                 self._driver.send(lora_dataframe.to_bytes())
+                self.send_counter += 1
                 time_on_air = time.ticks_diff(time.ticks_ms(), start)
                 self._transmit_time += time_on_air
                 self._will_irq = self._driver.start_recv(continuous=True, timeout_ms=None)
@@ -240,6 +243,9 @@ class LoRaDataLink(Singleton):
                 self._transmitQueue.put_sync_left(lora_dataframe)
                 if "BUSY timeout" in str(e):
                     self._handle_busy_error()
+        if time.ticks_ms() % 10000 < 1000:
+            # Alle 10 Sekunden triggern
+            _log(f"Statistic: send_counter={self.send_counter}, receive_counter={self.receive_counter}", LOGLEVEL_INFO)
 
 
     def _handle_rx_packet(self, rx_packet):
@@ -278,6 +284,7 @@ class LoRaDataLink(Singleton):
                         state.last_communication = time.ticks_ms()
 
                     socket.add_lora_dataframe_to_queue(lora_dataframe)
+                    self.receive_counter += 1
 
                 elif lora_dataframe.data_type == LoRaDataLink_Woke_Up and self.mode == LORA_DATALINK_MODE_GATEWAY:
                     state = SensorState.get_state_by_address(lora_dataframe.address)
@@ -293,6 +300,7 @@ class LoRaDataLink(Singleton):
                         if socket is not None:
                             _log("Sensor became active. Telling TCP socket", LOGLEVEL_INFO)
                             socket.continue_timer()
+                    self.receive_counter += 1
 
 
         except ValueError as e:
