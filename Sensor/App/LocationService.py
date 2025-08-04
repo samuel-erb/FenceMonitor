@@ -11,7 +11,7 @@ class LocationService:
         print("[LocationService] GPS fix detected")
         (latitude, longitude) = self.gps_module.get_position(10_000)
         print(f"[LocationService] Got location: latitude={latitude}, longitude={longitude}")
-        self.gps_module.set_power_mode(NEO6M.POWER_SAVE_MODE)
+        #self.gps_module.set_power_mode(NEO6M.POWER_SAVE_MODE)
         return (latitude, longitude)
 
     def test(self):

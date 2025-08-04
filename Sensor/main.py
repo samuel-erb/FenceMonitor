@@ -14,7 +14,7 @@ SENSOR_ID = int.from_bytes(machine.unique_id(), "big") & 0xFF
 MQTT_TOPIC_MEASUREMENT = b'fence_sensor/measure/voltage'
 MQTT_TOPIC_VOLTAGE_THRESHOLD = b'fence_sensor/measure/threshold'
 MQTT_TOPIC_LOCATION_UPDATE = b'fence_sensor/update/location/' + str(SENSOR_ID).encode('utf-8')
-SLEEP_DURATION_MILLISECONDS = const(300_000) # 5 minutes
+SLEEP_DURATION_MILLISECONDS = const(60_000) # 1 minute # const(300_000) # 5 minutes
 
 threshold_voltage = 8_000 # Volt
 location_should_update = True
@@ -89,10 +89,11 @@ async def main(mqtt_client: LoRaMQTTClient):
             last_measurement_sent = time.ticks_ms()
         else:
             critical_voltage_before = False
-            print(f"[App] No location update requested, last measurement was sent within the last hour and the measured voltage is greater or equal the threshold {threshold_voltage} >= {voltage} -> going back to sleep without sending data to MQTT Broker")
-
-        await asyncio.sleep(30)
-        await sleep_manager.sleep()
+        print(f"[App] No location update requested, last measurement was sent within the last hour and the measured voltage is greater or equal the threshold {threshold_voltage} >= {voltage} -> going back to sleep without sending data to MQTT Broker")
+        await asyncio.sleep(10)
+        #mqtt_client.disconnect()
+        #await sleep_manager.sleep()
 
 def send_voltage_measurement(mqtt_client: LoRaMQTTClient, measurement: ApplicationData):
+    print(f"[App] Sending measurement {measurement}")
     mqtt_client.publish(MQTT_TOPIC_MEASUREMENT, measurement.to_bytes(), False, 0)

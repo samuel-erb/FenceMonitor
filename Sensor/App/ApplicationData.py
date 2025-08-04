@@ -58,3 +58,6 @@ class ApplicationData:
             raise ValueError(f"Wert {value} außerhalb des erlaubten Bereichs ({min_val}–{max_val})")
         q = int((value - min_val) / (max_val - min_val) * ApplicationData.QUANT_MAX)
         return min(max(q, 0), ApplicationData.QUANT_MAX)  # Sicherheit gegen Überlauf
+
+    def __repr__(self):
+        return "ApplicationData(sensor_id={}, battery={}, voltage={}, latitude={}, longitude={})".format(self.sensor_id, self.battery, self.voltage, self.latitude, self.longitude)
