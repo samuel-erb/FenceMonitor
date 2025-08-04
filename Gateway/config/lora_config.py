@@ -44,7 +44,7 @@ PA_RAMP_US = 40
 # Signal bandwidth in kHz
 # Available bandwidths: 7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500 kHz
 # Note: In the lower band (169 MHz), 250 kHz and 500 kHz are not supported
-BW = 31.25
+BW = 41.7
 
 # Error coding rate (forward error correction)
 # Options:
