@@ -153,8 +153,8 @@ def configure_modem() -> SX1262:
         )
 
     modem.configure_cad(
-        cad_symbol_num=CAD_ON_2_SYMB,    # 2 Symbole für Detection
-        cad_detect_peak=22,  # Peak-Schwelle
+        cad_symbol_num=CAD_ON_4_SYMB,    # 2 Symbole für Detection
+        cad_detect_peak=25,  # Peak-Schwelle
         cad_detect_min=10,   # Min-Schwelle
         cad_exit_mode=1      # Nach CAD zu Receive
     )
