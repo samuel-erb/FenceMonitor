@@ -14,7 +14,7 @@ SENSOR_ID = int.from_bytes(machine.unique_id(), "big") & 0xFF
 MQTT_TOPIC_MEASUREMENT = b'fence_sensor/measure/voltage'
 MQTT_TOPIC_VOLTAGE_THRESHOLD = b'fence_sensor/measure/threshold'
 MQTT_TOPIC_LOCATION_UPDATE = b'fence_sensor/update/location/' + str(SENSOR_ID).encode('utf-8')
-SLEEP_DURATION_MILLISECONDS = const(60_000) # 1 minute # const(300_000) # 5 minutes
+SLEEP_DURATION_MILLISECONDS = const(300_000) # const(60_000) # 1 minute # const(300_000) # 5 minutes
 
 threshold_voltage = 8_000 # Volt
 location_should_update = True
