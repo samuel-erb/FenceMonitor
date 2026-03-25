@@ -44,7 +44,7 @@ async def main(mqtt_client: LoRaMQTTClient):
     location_service = LocationService()
     sleep_manager = LightSleepManager(SLEEP_DURATION_MILLISECONDS)
     voltage_sensor = VoltageMeasurement()
-    critical_voltage_before = True
+    critical_voltage_before = False
 
     print("[App] Subscribing to topic " + MQTT_TOPIC_VOLTAGE_THRESHOLD.decode('utf-8'))
     mqtt_client.subscribe(MQTT_TOPIC_VOLTAGE_THRESHOLD)
@@ -69,18 +69,23 @@ async def main(mqtt_client: LoRaMQTTClient):
             last_measurement_sent = time.ticks_ms()
             location_should_update = False
             if voltage <= threshold_voltage:
+                print(f"[App] Voltage ({voltage/ 1000} kV) equal or below the threshold ({threshold_voltage / 1000} kV) ...")
                 critical_voltage_before = True
         elif critical_voltage_before:
+            print (f"[App] Sending data because last measurement was equal or below the threshold ...")
             data = ApplicationData(SENSOR_ID, voltage, battery)
             send_voltage_measurement(mqtt_client, data)
             last_measurement_sent = time.ticks_ms()
             critical_voltage_before = False
         elif voltage <= threshold_voltage:
+            print(f"[App] Voltage ({voltage/ 1000} kV) equal or below the threshold ({threshold_voltage / 1000} kV) ...")
             data = ApplicationData(SENSOR_ID, voltage, battery)
             send_voltage_measurement(mqtt_client, data)
             last_measurement_sent = time.ticks_ms()
             critical_voltage_before = True
         elif time.ticks_diff(last_measurement_sent, time.ticks_ms()) > 3_000_000: # 50 min
+            print(
+                f"[App] Sending data because last measurement was sent more than 50 min ago ...")
             data = ApplicationData(SENSOR_ID, voltage, battery)
             send_voltage_measurement(mqtt_client, data)
             last_measurement_sent = time.ticks_ms()
